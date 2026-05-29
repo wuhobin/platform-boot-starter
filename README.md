@@ -1,4 +1,4 @@
-# PanisBoot Starter
+# Aurora PlatformBoot Starter
 
 ![SpringBoot](https://img.shields.io/badge/Spring%20Boot-3.3.0-blue.svg)
 ![JDK](https://img.shields.io/badge/JDK-21+-blue.svg)
@@ -15,7 +15,3 @@ PlatformBoot Starter
 └── pom.xml -- 公共依赖
 ```
 
-
-### 开源协议
-
-项目基于 [Apache License 2.0 © 2025 Zhuang Pan](./LICENSE) 协议，仅供学习参考，商业使用请遵循作者版权信息，作者不保证也不承担任何软件的使用风险。

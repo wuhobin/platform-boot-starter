@@ -13,6 +13,12 @@
     <description>Platform starter ---common基础模块</description>
 
     <dependencies>
+        <!-- Spring Boot Autoconfigure -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
+        </dependency>
+
         <!-- 自定义验证注解 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
