@@ -1,0 +1,71 @@
+spring:
+  application:
+    name: platform-example
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/demo?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf8&allowPublicKeyRetrieval=true
+    username: root
+    password: whb18772916901
+    type: com.alibaba.druid.pool.DruidDataSource
+    # Druid 连接池配置
+    druid:
+      # 初始连接数
+      initial-size: 5
+      # 最大连接数
+      max-active: 20
+      # 最小空闲连接数
+      min-idle: 5
+      # 获取连接时的最大等待时间（ms）
+      max-wait: 60000
+      # 连接泄漏检测：超过此时间未归还则认定为泄漏（ms），-1 禁用
+      remove-abandoned-timeout: 180000
+      # 泄漏处理前是否记录日志
+      log-abandoned: true
+      # 连接有效性检测 SQL
+      validation-query: SELECT 1
+      # 获取连接后是否检测可用性
+      test-while-idle: true
+      # 归还前检测可用性
+      test-on-borrow: false
+      # 归还后检测可用性
+      test-on-return: false
+      # 检测空闲连接周期（ms）
+      time-between-eviction-runs-millis: 60000
+      # 连接最小存活时间（ms），超过此时间会被移除
+      min-evictable-idle-time-millis: 300000
+      # 打开连接后是否保持连接池名称
+      keep-alive: true
+      # 连接池名称
+      pool-name: druid-pool-example
+      # 是否启用监控页面（生产环境建议配置防火墙）
+      web-stat-filter:
+        enabled: true
+        url-pattern: /*
+        exclusions: "*.js,*.gif,*.jpg,*.png,*.css,*.ico,/druid/*"
+      # StatViewServlet 监控页面（可查看 SQL 执行统计等）
+      stat-view-servlet:
+        enabled: true
+        url-pattern: /druid/*
+        reset-enable: false
+        login-username: admin
+        login-password: admin123
+  sql:
+    init:
+      mode: never
+
+mybatis-plus:
+  ext:
+    # 禁止无条件全表扫描的表
+    disable-full-scan-table:
+      - t_user
+    # 动态表名配置
+    dynamic-table:
+      enable: true
+      tables:
+        - t_log
+      fallback-to-current-month: false
+
+logging:
+  level:
+    com.aurora: DEBUG
+    com.alibaba.druid: INFO
