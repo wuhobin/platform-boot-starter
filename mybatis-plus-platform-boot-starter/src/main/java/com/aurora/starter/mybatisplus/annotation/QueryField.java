@@ -6,7 +6,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * 查询方式 加上注解的属性为查询字段.
+ * 查询字段注解. 标注在查询对象的字段上，配合 {@link com.aurora.starter.mybatisplus.mybatis.DynamicCondition}
+ * 使用，会根据 {@link #operator()} 生成对应的 MyBatis-Plus QueryWrapper 条件.
  *
  * @author whb
  * @version 1.0
@@ -17,71 +18,51 @@ import java.lang.annotation.Target;
 public @interface QueryField {
 
     /**
-     * 查询方式.
-     * 默认为全匹配
+     * 查询操作符.
+     * 默认为 EQ（等于）.
      *
      * @return Operator
      */
     Operator operator() default Operator.EQ;
 
     /**
-     * 查询字段名.
-     * 不填写默认为注解属性名
-     * 如果配置{@link #orFields()}，则可以不填写，同时填写的情况下会把该字段加到or查询字段中
+     * 映射的数据库列名.
+     * 不填写时默认使用字段名（驼峰自动转下划线）.
      *
-     * @return 结果
+     * @return 列名
      */
     String field() default "";
 
     /**
-     * OR查询的字段名集合.
-     * 配置后会查询指定的多个字段（条件相同多字段or查询）
-     * eg：(fieldA {@link #operator()} ? OR fieldB {@link #operator()} ? OR fieldC {@link #operator()} ?)
+     * OR 查询字段集合.
+     * 配置后生成 (fieldA op ? OR fieldB op ? OR fieldC op ?) 模式的 OR 组合.
      *
-     * @return 结果
+     * @return OR 字段名数组
      */
     String[] orFields() default {};
 
     /**
-     * 多字段名集合.
-     * {@link #operator()} 为 #{@link Operator#GROUP} 和 #{@link Operator#DISTINCT} 时生效
+     * 多字段集合.
+     * 用于 GROUP / DISTINCT 等需要多字段的操作.
      *
-     * @return 结果
+     * @return 字段名数组
      */
     String[] fields() default {};
 
     /**
-     * 是否查询子文档.
-     * 仅支持MangoDB查询
+     * 是否查询空字符串.
+     * 默认为 false，即空字符串不参与查询条件.
      *
      * @return boolean
-     */
-    boolean queryInner() default false;
-
-    /**
-     * 子文档名称.
-     * 仅支持MangoDB查询
-     *
-     * @return 结果
-     */
-    String innerName() default "";
-
-    /**
-     * 是否查询空字符串.
-     * 默认不查询
-     *
-     * @return 结果
      */
     boolean queryEmpty() default false;
 
     /**
      * 是否忽略该字段.
-     * 默认不忽略
+     * 默认为 false，即该字段不参与动态条件构造.
      *
-     * @return 结果
+     * @return boolean
      */
     boolean ignore() default false;
-
-
 
 }

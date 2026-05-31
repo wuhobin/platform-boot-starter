@@ -28,7 +28,7 @@ public class MetaObjectHandlerAdapter implements MetaObjectHandler {
     public void insertFill(final MetaObject metaObject) {
         if (metaObject.getOriginalObject() instanceof BaseEntity) {
             Date now = DateUtils.getNowDate();
-            List<StrictFill<?, ?>> list = new ArrayList<>(4);
+            List<StrictFill<?, ?>> list = new ArrayList<>(2);
             list.add(StrictFill.of("createTime", Date.class, now));
             list.add(StrictFill.of("updateTime", Date.class, now));
             this.strictInsertFill(findTableInfo(metaObject), metaObject, list);

@@ -18,17 +18,6 @@ public class MpExtProperties {
     public static final String MP_EXT_PREFIX = "mybatis-plus.ext";
 
     /**
-     * 加密密钥
-     */
-    private String encryptionSecretKey;
-
-    /**
-     * 加解密,空字符串返回 null 值开关
-     * @see com.cloud.dal.handler.AESCTypeHandler
-     */
-    private boolean emptyStrReturnNull = false;
-
-    /**
      * 动态表名配置.
      */
     private DynamicTableProperties dynamicTable = new DynamicTableProperties();
@@ -37,11 +26,6 @@ public class MpExtProperties {
      * 禁止全表扫描的表名
      */
     private List<String> disableFullScanTable;
-
-    /**
-     * 是否启用分页插件.
-     */
-    private boolean pagePluginEnable;
 
     /**
      * 动态表名相关配置.
@@ -61,9 +45,10 @@ public class MpExtProperties {
         private String[] tables;
 
         /**
-         * 动态表SQL配置文件路径.
+         * 线程未指定后缀时，是否回退到当前月份（yyyyMM）作为后缀.
+         * 默认 false，即回退到原表名不加后缀.
          */
-        private String sqlPath = "/sql";
+        private boolean fallbackToCurrentMonth;
 
     }
 

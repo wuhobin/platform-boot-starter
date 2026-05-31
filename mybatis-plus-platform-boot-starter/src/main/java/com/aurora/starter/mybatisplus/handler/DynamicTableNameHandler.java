@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.extension.plugins.handler.TableNameHandler;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -30,12 +31,23 @@ public class DynamicTableNameHandler implements TableNameHandler {
     private static final String MONTH_DATE_PATTERN = "yyyyMM";
 
     /**
-     * 用于记录哪些表可以使用该月份动态表名处理器.
+     * 用于记录哪些表可以使用该动态表名处理器.
      */
     private final List<String> tableNames;
 
+    /**
+     * 线程未指定后缀时，是否回退到当前月份后缀.
+     * false 时回退到原表名，避免误访问未建立的月份分表.
+     */
+    private final boolean fallbackToCurrentMonth;
+
     public DynamicTableNameHandler(String... tableNames) {
-        this.tableNames = Arrays.asList(tableNames);
+        this(false, tableNames);
+    }
+
+    public DynamicTableNameHandler(boolean fallbackToCurrentMonth, String... tableNames) {
+        this.fallbackToCurrentMonth = fallbackToCurrentMonth;
+        this.tableNames = tableNames == null ? Collections.emptyList() : Arrays.asList(tableNames);
     }
 
     /**
@@ -47,19 +59,16 @@ public class DynamicTableNameHandler implements TableNameHandler {
      */
     @Override
     public String dynamicTableName(final String sql, final String tableName) {
-        // 沒有需要处理的表
-        if (null == this.tableNames || this.tableNames.isEmpty()) {
+        if (this.tableNames.isEmpty() || !this.tableNames.contains(tableName)) {
             return tableName;
         }
-        // 动态处理表名
-        if (this.tableNames.contains(tableName)) {
-            // 从线程中获取
-            String suffix = RequestThread.getValue(Constants.DYNAMIC_TABLE_SUFFIX);
-            if (StringUtils.isNotBlank(suffix)) {
-                // 拼接动态表名
-                return Constants.DYNAMIC_TABLE_DEFAULT_NAME.equals(suffix) ? tableName : tableName + SEPARATOR + suffix;
-            }
-            // 默认表名增加当前月份后缀
+        // 从线程中获取后缀
+        String suffix = RequestThread.getValue(Constants.DYNAMIC_TABLE_SUFFIX);
+        if (StringUtils.isNotBlank(suffix)) {
+            return Constants.DYNAMIC_TABLE_DEFAULT_NAME.equals(suffix) ? tableName : tableName + SEPARATOR + suffix;
+        }
+        // 线程无后缀：按配置决定是否回退到当前月份
+        if (fallbackToCurrentMonth) {
             return tableName + SEPARATOR + DateUtil.format(DateUtil.date(), MONTH_DATE_PATTERN);
         }
         return tableName;

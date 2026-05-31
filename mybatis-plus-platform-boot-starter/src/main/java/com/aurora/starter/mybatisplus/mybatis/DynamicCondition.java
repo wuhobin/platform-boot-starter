@@ -8,6 +8,7 @@ import com.aurora.starter.common.core.page.PageParam;
 import com.aurora.starter.common.utils.bean.ReflectUtils;
 import com.aurora.starter.mybatisplus.annotation.QueryField;
 import com.aurora.starter.mybatisplus.model.BaseQuery;
+import com.aurora.starter.mybatisplus.enums.BetweenType;
 import com.aurora.starter.mybatisplus.model.BetweenQueryAttribute;
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -60,8 +61,6 @@ public class DynamicCondition {
             return wrapper;
         }
 
-        boolean toMaster = false;
-
         List<Field> fields = ReflectUtils.getDeclaredFields(query.getClass(), PageParam.class);
 
         Object value;
@@ -84,7 +83,6 @@ public class DynamicCondition {
             }
             // mybatis-plus 将查询字段 属性名转为数据库列名（此处为驼峰转下划线）
             cond.setFiledName(StringUtils.camelToUnderline(cond.getFiledName()));
-            cond.setToMaster(toMaster);
 
             // 多字段组 OR 查询组合
             if (CollUtil.isNotEmpty(cond.getOrFiledNames())) {
@@ -153,15 +151,13 @@ public class DynamicCondition {
                 wrapper.le(cond.getFiledName(), value);
                 break;
             case BETWEEN:
-                if (ObjectUtil.isNotEmpty(value) && value instanceof BetweenQueryAttribute<?>) {
-                    BetweenQueryAttribute<?> attribute = (BetweenQueryAttribute<?>) value;
-                    wrapper.between(cond.getFiledName(), attribute.getStart(), attribute.getEnd());
+                if (ObjectUtil.isNotEmpty(value) && value instanceof BetweenQueryAttribute<?> attribute) {
+                    appendBetweenCondition(wrapper, cond, attribute, true);
                 }
                 break;
             case NOT_BETWEEN:
-                if (ObjectUtil.isNotEmpty(value) && value instanceof BetweenQueryAttribute<?>) {
-                    BetweenQueryAttribute<?> attribute = (BetweenQueryAttribute<?>) value;
-                    wrapper.notBetween(cond.getFiledName(), attribute.getStart(), attribute.getEnd());
+                if (ObjectUtil.isNotEmpty(value) && value instanceof BetweenQueryAttribute<?> attribute) {
+                    appendBetweenCondition(wrapper, cond, attribute, false);
                 }
                 break;
             case NOT_NULL:
@@ -247,16 +243,43 @@ public class DynamicCondition {
                 break;
             case LIMIT:
                 if (ObjectUtil.isNotEmpty(value) && (value instanceof Integer || value instanceof Long)) {
-                    wrapper.last(" LIMIT " + value);
+                    wrapper.last("LIMIT " + value);
                 }
                 break;
             case DISTINCT:
                 List<String> filedNames = camelToUnderlines(cond.getFiledNames());
-                // 是否查询主库
-                String sql = cond.isToMaster() ? "/* to master */" : "";
-                wrapper.select(sql + " DISTINCT " + String.join(StringPool.COMMA, filedNames));
+                wrapper.select("DISTINCT " + String.join(StringPool.COMMA, filedNames));
                 break;
             default:
+                break;
+        }
+    }
+
+    /**
+     * 添加 BETWEEN / NOT_BETWEEN 条件，根据 {@link BetweenType} 选择左/右开闭。
+     */
+    private static <T> void appendBetweenCondition(QueryWrapper<T> wrapper, QueryCondition cond,
+                                                   BetweenQueryAttribute<?> attr, boolean positive) {
+        String column = cond.getFiledName();
+        Object start = attr.getStart();
+        Object end = attr.getEnd();
+        switch (attr.getBetweenType()) {
+            case BOTH_EQUAL:       // [start, end]
+                if (positive) wrapper.ge(column, start).le(column, end);
+                else         wrapper.notIn(column, start, end);
+                break;
+            case ONLY_MIN_EQUAL:   // [start, end)
+                if (positive) wrapper.ge(column, start).lt(column, end);
+                else         wrapper.and(w -> w.ne(column, start).or().lt(column, start));
+                break;
+            case ONLY_MAX_EQUAL:    // (start, end]
+                if (positive) wrapper.gt(column, start).le(column, end);
+                else         wrapper.and(w -> w.lt(column, end).or().gt(column, end));
+                break;
+            case BOTH_NOT_CONTAIN: // (start, end)
+            default:
+                if (positive) wrapper.gt(column, start).lt(column, end);
+                else         wrapper.and(w -> w.lt(column, start).or().gt(column, end));
                 break;
         }
     }
@@ -313,22 +336,19 @@ public class DynamicCondition {
             }
         }
 
-        String customSubSql;
-        // mysql查询条件不转json效率会高一点点
-        if (elementType == String.class) {
-            customSubSql = isDoris ? "JSON_CONTAINS({}, CAST('\"{}\"' AS JSON))" : "JSON_CONTAINS({}, '\"{}\"')";
-        } else {
-            customSubSql = isDoris ? "JSON_CONTAINS({}, CAST('{}' AS JSON))" : "JSON_CONTAINS({}, '{}')";
-        }
+        boolean isStringType = elementType == String.class;
+        String columnSqlTemplate = isDoris
+                ? (isStringType ? "JSON_CONTAINS({0}, CAST({1} AS JSON))" : "JSON_CONTAINS({0}, CAST({1} AS JSON))")
+                : (isStringType ? "JSON_CONTAINS({0}, {1})" : "JSON_CONTAINS({0}, {1})");
 
         if (value.getClass().isArray()) {
             int length = Array.getLength(value);
             for (int i = 0; i < length; i++) {
-                applyJsonArrayCondition(wrapper, cond, Array.get(value, i), customSubSql, isOr);
+                applyJsonArrayCondition(wrapper, cond, Array.get(value, i), columnSqlTemplate, isStringType, isOr);
             }
         } else if (value instanceof Collection) {
             for (Object element : (Collection<?>) value) {
-                applyJsonArrayCondition(wrapper, cond, element, customSubSql, isOr);
+                applyJsonArrayCondition(wrapper, cond, element, columnSqlTemplate, isStringType, isOr);
             }
         }
 
@@ -349,22 +369,17 @@ public class DynamicCondition {
             }
         }
 
-        String customSubSql;
-        // mysql查询条件不转json效率会高一点点
-        if (elementType == String.class) {
-            customSubSql = "NOT JSON_CONTAINS({}, CAST('\"{}\"' AS JSON))";
-        } else {
-            customSubSql = "NOT JSON_CONTAINS({}, CAST('{}' AS JSON))";
-        }
+        boolean isStringType = elementType == String.class;
+        String columnSqlTemplate = "NOT JSON_CONTAINS({0}, CAST({1} AS JSON))";
 
         if (value.getClass().isArray()) {
             int length = Array.getLength(value);
             for (int i = 0; i < length; i++) {
-                applyJsonArrayCondition(wrapper, cond, Array.get(value, i), customSubSql, isOr);
+                applyJsonArrayCondition(wrapper, cond, Array.get(value, i), columnSqlTemplate, isStringType, isOr);
             }
         } else if (value instanceof Collection) {
             for (Object element : (Collection<?>) value) {
-                applyJsonArrayCondition(wrapper, cond, element, customSubSql, isOr);
+                applyJsonArrayCondition(wrapper, cond, element, columnSqlTemplate, isStringType, isOr);
             }
         }
 
@@ -382,29 +397,37 @@ public class DynamicCondition {
      * 构建json列表查询wrapper.
      */
     private static <T> Wrapper<T> generateJsonArrayFieldToWrapperWithEmpty(final Field field, final QueryCondition cond, final Object value, final Boolean isOr, final Boolean isDoris) {
-        QueryWrapper<T> wrapper = (QueryWrapper<T>) generateJsonArrayFieldToWrapper(field, cond, value, isOr, isDoris);
+        Wrapper<T> baseWrapper = generateJsonArrayFieldToWrapper(field, cond, value, isOr, isDoris);
+        QueryWrapper<T> wrapper = (QueryWrapper<T>) baseWrapper;
+        String column = cond.getFiledName();
         wrapper.or();
-        wrapper.apply(" JSON_LENGTH(" + cond.getFiledName() + ") = 0");
+        wrapper.apply(" JSON_LENGTH({0}) = 0", column);
         wrapper.or();
-        wrapper.apply(cond.getFiledName() + " IS NULL");
+        wrapper.apply("{0} IS NULL", column);
         return wrapper;
     }
 
     /**
      * 拼接json列表查询条件.
+     * <p>SQL 模板使用 {0}=列名（字符串拼接，仅允许来自 {@link QueryField}）、{1}=值（走 MyBatis 参数绑定，防注入）。</p>
      *
      * @param wrapper wrapper
      * @param cond cond
      * @param element element
-     * @param customSubSql customSubSql
+     * @param columnSqlTemplate 列 SQL 模板，必须含 {0} 与 {1} 两个占位
+     * @param isStringType json 元素是否为字符串
      * @param isOr isOr
      * @param <T> 类型
      */
-    private static <T> void applyJsonArrayCondition(QueryWrapper<T> wrapper, QueryCondition cond, Object element, String customSubSql, Boolean isOr) {
+    private static <T> void applyJsonArrayCondition(QueryWrapper<T> wrapper, QueryCondition cond, Object element,
+                                                    String columnSqlTemplate, boolean isStringType, Boolean isOr) {
         if (isOr) {
             wrapper.or();
         }
-        wrapper.apply(StrUtil.format(customSubSql, cond.getFiledName(), element));
+        // 列名是字段元数据，安全；元素值必须通过参数绑定。MyBatis-Plus 的 apply 使用 {0} 占位符做参数绑定。
+        String sqlWithColumn = StrUtil.format(columnSqlTemplate, cond.getFiledName(), "{0}");
+        Object boundValue = isStringType ? StrUtil.format("\"{}\"", element) : element;
+        wrapper.apply(sqlWithColumn, boundValue);
     }
 
 }

@@ -1,7 +1,5 @@
 package com.aurora.starter.mybatisplus.annotation;
 
-import com.cloud.common.core.model.BetweenQueryAttribute;
-
 /**
  * 查询操作符.
  *

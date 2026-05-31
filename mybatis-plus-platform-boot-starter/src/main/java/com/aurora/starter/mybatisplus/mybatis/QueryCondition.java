@@ -31,20 +31,12 @@ public class QueryCondition {
 
     private List<String> filedNames;
 
-    private boolean queryInner;
-
-    private String innerName;
-
     private boolean queryEmpty;
 
     private boolean ignore;
 
-    private boolean toMaster;
-
     /**
      * 复制.
-     *
-     * @return QueryCondition
      */
     public QueryCondition copy() {
         QueryCondition c = new QueryCondition();
@@ -52,40 +44,30 @@ public class QueryCondition {
         c.setFiledName(this.filedName);
         c.setOrFiledNames(this.orFiledNames);
         c.setFiledNames(this.filedNames);
-        c.setQueryInner(this.queryInner);
-        c.setInnerName(this.innerName);
         c.setQueryEmpty(this.queryEmpty);
         c.setIgnore(this.ignore);
-        c.setToMaster(this.toMaster);
         return c;
     }
 
     /**
      * 默认条件.
-     *
-     * @return QueryCondition
      */
     public static QueryCondition defaultCondition() {
         QueryCondition condition = new QueryCondition();
-        condition.setOperator(Operator.EQ).setQueryEmpty(false).setIgnore(false).setToMaster(false);
+        condition.setOperator(Operator.EQ).setQueryEmpty(false).setIgnore(false);
         return condition;
     }
 
     /**
-     * 构建条件.
-     *
-     * @param queryField 查询字段
-     * @return QueryCondition
+     * 从 {@link QueryField} 注解构建条件.
      */
     public static QueryCondition of(final QueryField queryField) {
         QueryCondition condition = new QueryCondition();
         condition.setOperator(queryField.operator()).setFiledName(queryField.field());
-        condition.setQueryInner(queryField.queryInner()).setInnerName(queryField.innerName());
         condition.setQueryEmpty(queryField.queryEmpty()).setIgnore(queryField.ignore());
         // or 字段查询组
         if (ArrayUtil.isNotEmpty(queryField.orFields())) {
             List<String> orFields = Arrays.stream(queryField.orFields()).collect(Collectors.toCollection(ArrayList::new));
-            // 兼容之前的写法@何振辉（本身 + or 条件）
             if (StrUtil.isNotBlank(queryField.field())) {
                 orFields.add(queryField.field());
             }
@@ -93,7 +75,6 @@ public class QueryCondition {
         }
         // 多字段组
         List<String> filedNames = new ArrayList<>();
-        // 默认字段
         if (StrUtil.isNotBlank(queryField.field())) {
             filedNames.add(queryField.field());
         }
