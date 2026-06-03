@@ -4,11 +4,10 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.aurora</groupId>
-        <artifactId>platform-boot-starter</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
+        <artifactId>platform-starter</artifactId>
+        <version>${revision}</version>
     </parent>
 
-    <version>1.0.0-SNAPSHOT</version>
     <artifactId>mybatis-plus-platform-boot-starter</artifactId>
     <description>Platform starter ---数据访问层 Mybatis-Plus模块</description>
 
@@ -16,7 +15,7 @@
 
         <dependency>
             <groupId>com.aurora</groupId>
-            <artifactId>common-platform-boot-starter</artifactId>
+            <artifactId>platform-common</artifactId>
         </dependency>
 
         <!-- Mybatis -->
