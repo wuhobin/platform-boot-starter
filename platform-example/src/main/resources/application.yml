@@ -65,6 +65,32 @@ mybatis-plus:
         - t_log
       fallback-to-current-month: false
 
+# Knife4j 扩展配置（自定义文档元信息）
+knife4j:
+  ext:
+    title: Platform Example API
+    description: platform-boot-starter 示例工程的接口文档
+    version: 1.0.0
+    contact:
+      name: whb
+      email: whb@aurora.com
+  # Knife4j 官方增强配置
+  setting:
+    language: zh_cn
+
+# springdoc 分组与扫描
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  group-configs:
+    - group: default
+      paths-to-match: /**
+      packages-to-scan: com.aurora.example.controller
+
 logging:
   level:
     com.aurora: DEBUG
