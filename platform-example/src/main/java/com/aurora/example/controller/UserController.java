@@ -29,7 +29,7 @@ public class UserController {
     }
 
     @GetMapping("/page")
-    public IPage<User> page(UserQuery query,
+    public IPage<User> page(@RequestBody UserQuery query,
                             @RequestParam(defaultValue = "1") long pageNo,
                             @RequestParam(defaultValue = "10") long pageSize) {
         return userService.page(query, pageNo, pageSize);
