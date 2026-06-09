@@ -29,6 +29,7 @@
         <maven.plugin.version>3.13.0</maven.plugin.version>
         <maven.plugin.jar.version>3.3.0</maven.plugin.jar.version>
         <maven.plugin.update.versions.version>2.18.0</maven.plugin.update.versions.version>
+        <maven.plugin.flatten.version>1.6.0</maven.plugin.flatten.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <revision>1.0.0-SNAPSHOT</revision>
@@ -118,6 +119,37 @@
                     <processDependencyManagement>false</processDependencyManagement>
                     <processPlugins>false</processPlugins>
                 </configuration>
+            </plugin>
+            <!--
+                flatten-maven-plugin：把 ${revision} 占位符在 install/deploy 时
+                物化成真实版本号写入 .flattened-pom.xml，避免下游消费者解析失败。
+                resolveCiFriendliesOnly 模式只解析 CI-friendly 变量（revision/sha1/changelist），
+                其它内容（modules、dependencyManagement 等）保持不变，侵入最小。
+            -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>flatten-maven-plugin</artifactId>
+                <version>${maven.plugin.flatten.version}</version>
+                <configuration>
+                    <updatePomFile>true</updatePomFile>
+                    <flattenMode>resolveCiFriendliesOnly</flattenMode>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>flatten</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>flatten</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>flatten.clean</id>
+                        <phase>clean</phase>
+                        <goals>
+                            <goal>clean</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

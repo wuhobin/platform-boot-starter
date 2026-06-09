@@ -34,3 +34,6 @@ CLAUDE.md
 .vscode/
 .claude/
 docs/
+
+### flatten-maven-plugin 生成物 ###
+.flattened-pom.xml
