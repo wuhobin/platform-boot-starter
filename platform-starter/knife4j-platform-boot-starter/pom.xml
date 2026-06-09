@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.aurora</groupId>
+        <artifactId>platform-starter</artifactId>
+        <version>${revision}</version>
+    </parent>
+
+    <artifactId>knife4j-platform-boot-starter</artifactId>
+    <description>Platform starter --- API 文档 Knife4j（OpenAPI3 + Jakarta）模块</description>
+
+    <dependencies>
+
+        <dependency>
+            <groupId>com.aurora</groupId>
+            <artifactId>platform-common</artifactId>
+        </dependency>
+
+        <!-- Knife4j（已传递引入 springdoc-openapi-starter-webmvc-ui） -->
+        <dependency>
+            <groupId>com.github.xiaoymin</groupId>
+            <artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+        </resources>
+    </build>
+
+</project>
