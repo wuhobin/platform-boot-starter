@@ -17,12 +17,31 @@
 </dependency>
 ```
 
-下游主类示例（包根非 `com.aurora.*` 时必须追加 `scanBasePackages`）：
+下游主类示例（包根非 `com.aurora.*` 时**必须**让 Spring 扫到 `com.aurora.starter.webmvc` 包，否则 Filter / `@RestControllerAdvice` 不生效）。两种写法二选一：
+
+**推荐：`scanBasePackageClasses`（类型安全，IDE 重构友好）**
 
 ```java
-@SpringBootApplication(scanBasePackages = {"com.example.user", "com.aurora.starter.webmvc"})
+import com.aurora.starter.webmvc.PlatformWebMvcMarker;
+
+@SpringBootApplication(scanBasePackageClasses = {
+    Application.class,            // 业务工程自身包
+    PlatformWebMvcMarker.class    // platform-webmvc 包扫描锚点
+})
 public class Application { ... }
 ```
+
+**或：`scanBasePackages` 字符串**
+
+```java
+@SpringBootApplication(scanBasePackages = {
+    "com.example.user",           // 业务工程自身包
+    "com.aurora.starter.webmvc"   // platform-webmvc 包
+})
+public class Application { ... }
+```
+
+> 业务工程自己的包**必须列出**，一旦写了 `scanBasePackages*`，默认扫描（主类所在包）就被覆盖。
 
 ---
 
