@@ -45,17 +45,23 @@ public class Application { ... }
 
 ---
 
-## 二、统一响应体 `R<T>`
+## 二、统一响应体 `Result<T>`
 
 ```java
 @GetMapping("/users/{id}")
-public R<User> get(@PathVariable Long id) {
-    return R.ok(userService.findById(id));
+public Result<User> get(@PathVariable Long id) {
+    return Result.data(userService.findById(id));
 }
 
-@GetMapping
-public R<Void> noContent() {
-    return R.ok();
+@PostMapping
+public Result<Void> create(@RequestBody @Valid UserCreateDTO dto) {
+    userService.create(dto);
+    return Result.success();                 // code=200, msg="操作成功"
+}
+
+@GetMapping("/exists/{id}")
+public Result<Boolean> exists(@PathVariable Long id) {
+    return Result.result(userService.exists(id));   // true → success(); false → error()
 }
 ```
 
@@ -63,38 +69,56 @@ public R<Void> noContent() {
 
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |
-| `code` | int | 业务码，0=成功，其它=错误码 |
-| `message` | String | 提示消息 |
-| `data` | T | 业务数据，错误时为 null |
-| `timestamp` | long | 服务器时间戳（毫秒） |
-| `traceId` | String | 从 MDC 取，未配置 trace 时为 null |
+| `code` | int | 业务码，200=成功，4xx/5xx=错误（HTTP 风格） |
+| `msg` | String | 提示信息 |
+| `data` | T | 业务数据，失败响应通常为 null |
+| `traceId` | String | 构造时从 MDC 取，未配置 trace 时为 null |
+
+**静态工厂**：
+
+| 方法 | 用途 |
+| --- | --- |
+| `Result.success()` | 成功，code=200，msg="操作成功"，data=null |
+| `Result.success(msg)` | 成功，自定义提示 |
+| `Result.data(data)` | 成功 + 数据 |
+| `Result.success(msg, data)` | 成功 + 自定义提示 + 数据 |
+| `Result.result(boolean)` | boolean 快捷分支：true → success()，false → error() |
+| `Result.error()` | 失败，code=500，msg="操作失败" |
+| `Result.error(msg)` | 失败，自定义提示（code=500） |
+| `Result.error(bizCode)` | 失败，依据 `BizCode` 取 code 与默认 message |
+| `Result.error(bizCode, msg)` | 失败，依据 `BizCode` 取 code，自定义 message |
+| `Result.error(code, msg)` | 失败，完全自定义 code 与 message |
+
+实例方法 `result.ok()` 返回 `code == 200`，便于业务侧链式判断。
 
 > **HTTP 状态码**统一返回 200，业务结果由 `code` 字段承载。如需 4xx/5xx 走 HTTP 状态码，业务侧自行写 `@ExceptionHandler` 覆盖。
+>
+> **OpenAPI 注解**：`Result` 与字段已用 `@Schema` 标注，knife4j/Swagger UI 自动渲染。
 
 ---
 
 ## 三、业务异常 `BizException`
 
-抛出即被 `GlobalExceptionHandler` 捕获并转 `R.error(...)`：
+抛出即被 `GlobalExceptionHandler` 捕获并转 `Result.error(...)`：
 
 ```java
 if (user == null) {
-    throw new BizException(DefaultErrorCode.NOT_FOUND);
+    throw new BizException(DefaultBizCode.NOT_FOUND);
 }
 if (!password.matches(...)) {
-    throw new BizException(DefaultErrorCode.PARAM_INVALID, "密码格式不正确");
+    throw new BizException(DefaultBizCode.PARAM_INVALID, "密码格式不正确");
 }
 throw new BizException(10001, "余额不足");
 ```
 
-### 自定义错误码
+### 自定义业务码
 
-实现 `ErrorCode` 接口：
+实现 `BizCode` 接口：
 
 ```java
 @Getter
 @AllArgsConstructor
-public enum UserErrorCode implements ErrorCode {
+public enum UserBizCode implements BizCode {
     USER_NOT_FOUND(10001, "用户不存在"),
     USER_DISABLED(10002, "用户已禁用");
 
@@ -102,14 +126,14 @@ public enum UserErrorCode implements ErrorCode {
     private final String message;
 }
 
-throw new BizException(UserErrorCode.USER_NOT_FOUND);
+throw new BizException(UserBizCode.USER_NOT_FOUND);
 ```
 
 ---
 
 ## 四、全局异常处理器
 
-`GlobalExceptionHandler` 自动处理以下异常并返回 `R`：
+`GlobalExceptionHandler` 自动处理以下异常并返回 `Result`：
 
 | 异常 | 业务码 | 日志级别 |
 | --- | --- | --- |
@@ -211,3 +235,4 @@ IP 取值顺序：`X-Forwarded-For` 首段 → `X-Real-IP` → `request.getRemot
 | Spring Boot | 3.5.0 |
 | spring-boot-starter-web | 由 Spring Boot BOM 管控 |
 | platform-common | 1.0.0-SNAPSHOT（传递引入 spring-boot-starter-validation） |
+| knife4j-platform-boot-starter | 1.0.0-SNAPSHOT（传递引入 OpenAPI 3 `@Schema` 注解） |
