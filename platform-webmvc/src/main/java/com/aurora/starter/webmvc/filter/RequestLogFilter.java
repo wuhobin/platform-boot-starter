@@ -1,6 +1,6 @@
-package com.aurora.starter.webmvc.filter.log;
+package com.aurora.starter.webmvc.filter;
 
-import com.aurora.starter.webmvc.filter.trace.TraceIdFilter;
+import com.aurora.starter.webmvc.domain.log.RequestLogPathExcludes;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

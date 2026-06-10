@@ -1,4 +1,4 @@
-package com.aurora.starter.webmvc.filter.log;
+package com.aurora.starter.webmvc.domain.log;
 
 import java.util.List;
 

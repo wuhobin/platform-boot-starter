@@ -1,6 +1,7 @@
-package com.aurora.starter.webmvc.exception;
+package com.aurora.starter.webmvc.enums;
 
 import com.aurora.starter.webmvc.constants.HttpStatus;
+import com.aurora.starter.webmvc.exception.BizCode;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

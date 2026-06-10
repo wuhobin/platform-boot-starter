@@ -1,4 +1,4 @@
-package com.aurora.starter.webmvc.filter.trace;
+package com.aurora.starter.webmvc.domain.log;
 
 import com.aurora.starter.webmvc.constants.TraceConstants;
 import com.aurora.starter.webmvc.domain.response.Result;
