@@ -24,6 +24,12 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
+        <!-- knife4j starter（提供 OpenAPI 3 @Schema 注解，供 Result 等公共模型标注） -->
+        <dependency>
+            <groupId>com.aurora</groupId>
+            <artifactId>knife4j-platform-boot-starter</artifactId>
+        </dependency>
+
     </dependencies>
 
     <build>
