@@ -1,4 +1,4 @@
-package com.aurora.starter.webmvc.trace;
+package com.aurora.starter.webmvc.constants;
 
 /**
  * Trace 相关常量.

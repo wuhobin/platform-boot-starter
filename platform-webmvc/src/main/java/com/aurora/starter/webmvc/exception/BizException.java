@@ -1,12 +1,13 @@
 package com.aurora.starter.webmvc.exception;
 
+import com.aurora.starter.webmvc.domain.response.Result;
 import lombok.Getter;
 
 /**
  * 业务异常.
  *
  * <p>{@link RuntimeException} 子类，不污染业务方法签名。
- * 由 {@link GlobalExceptionHandler} 统一捕获并转换为 {@link com.aurora.starter.webmvc.response.Result}.</p>
+ * 由 {@link GlobalExceptionHandler} 统一捕获并转换为 {@link Result}.</p>
  *
  * @author whb
  */

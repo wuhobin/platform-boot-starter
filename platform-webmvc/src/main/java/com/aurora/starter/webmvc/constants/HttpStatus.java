@@ -1,4 +1,4 @@
-package com.aurora.starter.webmvc.response;
+package com.aurora.starter.webmvc.constants;
 
 /**
  * HTTP 风格的业务状态码常量.

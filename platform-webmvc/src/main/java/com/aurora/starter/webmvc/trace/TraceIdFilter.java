@@ -1,5 +1,6 @@
 package com.aurora.starter.webmvc.trace;
 
+import com.aurora.starter.webmvc.constants.TraceConstants;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

@@ -1,6 +1,6 @@
 package com.aurora.starter.webmvc.exception;
 
-import com.aurora.starter.webmvc.response.HttpStatus;
+import com.aurora.starter.webmvc.constants.HttpStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

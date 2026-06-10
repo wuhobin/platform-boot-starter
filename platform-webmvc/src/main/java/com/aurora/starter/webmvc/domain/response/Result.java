@@ -1,7 +1,8 @@
-package com.aurora.starter.webmvc.response;
+package com.aurora.starter.webmvc.domain.response;
 
+import com.aurora.starter.webmvc.constants.HttpStatus;
 import com.aurora.starter.webmvc.exception.BizCode;
-import com.aurora.starter.webmvc.trace.TraceConstants;
+import com.aurora.starter.webmvc.constants.TraceConstants;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.NoArgsConstructor;
