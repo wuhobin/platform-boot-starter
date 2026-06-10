@@ -210,5 +210,4 @@ IP 取值顺序：`X-Forwarded-For` 首段 → `X-Real-IP` → `request.getRemot
 | JDK | 21 |
 | Spring Boot | 3.5.0 |
 | spring-boot-starter-web | 由 Spring Boot BOM 管控 |
-| spring-boot-starter-validation | 由 Spring Boot BOM 管控 |
-| platform-common | 1.0.0-SNAPSHOT |
+| platform-common | 1.0.0-SNAPSHOT（传递引入 spring-boot-starter-validation） |
