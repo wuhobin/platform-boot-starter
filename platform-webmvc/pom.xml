@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.aurora</groupId>
+        <artifactId>platform-parent</artifactId>
+        <version>${revision}</version>
+    </parent>
+
+    <artifactId>platform-webmvc</artifactId>
+    <description>Platform --- Web MVC 通用件（统一响应、业务异常、全局异常处理、TraceId 透传、请求日志）</description>
+
+    <dependencies>
+
+        <dependency>
+            <groupId>com.aurora</groupId>
+            <artifactId>platform-common</artifactId>
+        </dependency>
+
+        <!-- Servlet Web 环境（GlobalExceptionHandler、Filter 必需） -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!-- @Valid / @Validated 异常需要识别 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+        </resources>
+    </build>
+
+</project>
