@@ -48,6 +48,12 @@
                 <version>${revision}</version>
             </dependency>
 
+            <dependency>
+                <groupId>com.aurora</groupId>
+                <artifactId>platform-webmvc</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
             <!-- SpringBoot的依赖配置-->
             <dependency>
                 <groupId>org.springframework.boot</groupId>
