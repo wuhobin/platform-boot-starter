@@ -64,5 +64,22 @@
 
     <build>
         <finalName>${project.name}-${project.version}</finalName>
+        <plugins>
+            <!-- 支持 `mvn spring-boot:run` 与 `spring-boot:repackage` 打可执行 jar -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>3.5.0</version>
+                <configuration>
+                    <mainClass>com.aurora.example.PlatformExampleApplication</mainClass>
+                    <excludes>
+                        <exclude>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+        </plugins>
     </build>
 </project>
