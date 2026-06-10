@@ -4,6 +4,8 @@ import com.aurora.starter.webmvc.response.R;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -49,10 +51,26 @@ public class GlobalExceptionHandler {
         return R.error(DefaultErrorCode.PARAM_INVALID.getCode(), message);
     }
 
+    @ExceptionHandler(BindException.class)
+    public R<Void> handleBindException(BindException e) {
+        FieldError first = e.getBindingResult().getFieldError();
+        String message = first != null
+                ? first.getField() + " " + first.getDefaultMessage()
+                : DefaultErrorCode.PARAM_INVALID.getMessage();
+        log.warn("参数校验失败: {}", message);
+        return R.error(DefaultErrorCode.PARAM_INVALID.getCode(), message);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public R<Void> handleHttpMessageNotReadable(HttpMessageNotReadableException e) {
+        log.warn("请求体解析失败: {}", e.getMessage());
+        return R.error(DefaultErrorCode.PARAM_INVALID.getCode(), "请求体格式错误");
+    }
+
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public R<Void> handleMissingParam(MissingServletRequestParameterException e) {
         String message = "缺少参数: " + e.getParameterName();
-        log.warn(message);
+        log.warn("缺少参数: {}", e.getParameterName());
         return R.error(DefaultErrorCode.PARAM_INVALID.getCode(), message);
     }
 
