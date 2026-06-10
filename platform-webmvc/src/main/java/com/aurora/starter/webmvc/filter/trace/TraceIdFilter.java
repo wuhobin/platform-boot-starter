@@ -1,4 +1,4 @@
-package com.aurora.starter.webmvc.trace;
+package com.aurora.starter.webmvc.filter.trace;
 
 import com.aurora.starter.webmvc.constants.TraceConstants;
 import jakarta.servlet.FilterChain;

@@ -1,6 +1,8 @@
-package com.aurora.starter.webmvc.exception;
+package com.aurora.starter.webmvc.advice;
 
 import com.aurora.starter.webmvc.domain.response.Result;
+import com.aurora.starter.webmvc.exception.BizException;
+import com.aurora.starter.webmvc.exception.DefaultBizCode;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;

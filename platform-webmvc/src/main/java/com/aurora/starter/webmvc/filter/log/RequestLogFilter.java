@@ -1,5 +1,6 @@
-package com.aurora.starter.webmvc.log;
+package com.aurora.starter.webmvc.filter.log;
 
+import com.aurora.starter.webmvc.filter.trace.TraceIdFilter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,7 +23,7 @@ import java.io.IOException;
  *
  * <p>继承 {@link OncePerRequestFilter} 避免 forward/include 重复日志。</p>
  *
- * <p>顺序 {@link Ordered#HIGHEST_PRECEDENCE} + 100，晚于 {@link com.aurora.starter.webmvc.trace.TraceIdFilter}。</p>
+ * <p>顺序 {@link Ordered#HIGHEST_PRECEDENCE} + 100，晚于 {@link TraceIdFilter}。</p>
  *
  * @author whb
  */
