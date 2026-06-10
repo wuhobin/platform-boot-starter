@@ -15,6 +15,8 @@
     <modules>
         <!-- 公共基础包 -->
         <module>platform-common</module>
+        <!-- Web MVC 通用件 -->
+        <module>platform-webmvc</module>
         <!-- 自定义starter包 -->
         <module>platform-starter</module>
         <!-- 项目依赖管理 -->
