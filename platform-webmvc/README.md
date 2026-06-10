@@ -95,8 +95,10 @@ throw new BizException(UserErrorCode.USER_NOT_FOUND);
 | 异常 | 业务码 | 日志级别 |
 | --- | --- | --- |
 | `BizException` | `e.getCode()` | warn |
-| `MethodArgumentNotValidException`（`@Valid`） | 400 | warn |
+| `MethodArgumentNotValidException`（`@Valid` on `@RequestBody`） | 400 | warn |
+| `BindException`（`@Valid` on `@ModelAttribute`/表单） | 400 | warn |
 | `ConstraintViolationException`（`@Validated`） | 400 | warn |
+| `HttpMessageNotReadableException`（请求体 JSON 解析失败） | 400 | warn |
 | `MissingServletRequestParameterException` | 400 | warn |
 | `NoHandlerFoundException`* | 404 | warn |
 | 其它 `Throwable` | 500 | error（含全栈） |
