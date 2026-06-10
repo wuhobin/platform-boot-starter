@@ -6,7 +6,7 @@ import org.slf4j.MDC;
  * TraceId 上下文：封装 SLF4J MDC + ThreadLocal 双通道存取.
  *
  * <p>MDC 通道供日志框架自动输出 traceId；ThreadLocal 通道供业务代码同步读取
- * （如 {@link com.aurora.starter.webmvc.response.R} 构造时回填）。</p>
+ * （如 {@link com.aurora.starter.webmvc.response.Result} 构造时回填）。</p>
  *
  * @author whb
  */

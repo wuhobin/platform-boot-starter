@@ -6,7 +6,7 @@ import lombok.Getter;
  * 业务异常.
  *
  * <p>{@link RuntimeException} 子类，不污染业务方法签名。
- * 由 {@link GlobalExceptionHandler} 统一捕获并转换为 {@link com.aurora.starter.webmvc.response.R}.</p>
+ * 由 {@link GlobalExceptionHandler} 统一捕获并转换为 {@link com.aurora.starter.webmvc.response.Result}.</p>
  *
  * @author whb
  */
@@ -18,14 +18,14 @@ public class BizException extends RuntimeException {
     /** 业务码. */
     private final int code;
 
-    public BizException(ErrorCode errorCode) {
-        super(errorCode.getMessage());
-        this.code = errorCode.getCode();
+    public BizException(BizCode bizCode) {
+        super(bizCode.getMessage());
+        this.code = bizCode.getCode();
     }
 
-    public BizException(ErrorCode errorCode, String customMessage) {
+    public BizException(BizCode bizCode, String customMessage) {
         super(customMessage);
-        this.code = errorCode.getCode();
+        this.code = bizCode.getCode();
     }
 
     public BizException(int code, String message) {
