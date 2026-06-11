@@ -27,14 +27,8 @@
             <version>1.0.0-SNAPSHOT</version>
         </dependency>
 
-        <!-- 引入 knife4j starter（API 文档，访问 /doc.html） -->
-        <dependency>
-            <groupId>com.aurora</groupId>
-            <artifactId>knife4j-platform-boot-starter</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
-        </dependency>
-
-        <!-- 引入 webmvc 通用件（统一响应 Result、BizException、GlobalExceptionHandler、TraceIdFilter、RequestLogFilter） -->
+        <!-- 引入 webmvc 通用件（统一响应 Result、BizException、GlobalExceptionHandler、TraceIdFilter、RequestLogFilter；
+             传递引入 spring-boot-starter-web 与 knife4j-platform-boot-starter，无需重复声明） -->
         <dependency>
             <groupId>com.aurora</groupId>
             <artifactId>platform-webmvc</artifactId>
@@ -46,12 +40,6 @@
             <groupId>com.mysql</groupId>
             <artifactId>mysql-connector-j</artifactId>
             <scope>runtime</scope>
-        </dependency>
-
-        <!-- Spring Boot Web -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
         <!-- Lombok（mybatis-plus starter 的 provided 依赖，需显式声明） -->
