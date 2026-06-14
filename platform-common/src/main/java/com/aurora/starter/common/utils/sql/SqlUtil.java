@@ -2,7 +2,6 @@ package com.aurora.starter.common.utils.sql;
 
 import cn.hutool.core.exceptions.UtilException;
 import cn.hutool.core.util.ArrayUtil;
-import com.aurora.starter.common.core.page.PageParam;
 import com.aurora.starter.common.utils.StringUtils;
 
 /**
@@ -31,6 +30,18 @@ public class SqlUtil {
      * 倒序.
      */
     public static final String DESC_SUFFIX = " desc, ";
+
+    /** 排序语法分隔符. */
+    private static final String COMMA = ",";
+
+    /** 升序前缀（后端约定）. */
+    private static final String PLUS = "+";
+
+    /** 降序前缀（后端约定）. */
+    private static final String REDUCE = "-";
+
+    /** 末尾分隔符片段，去除时用. */
+    private static final String SPACE = " ";
 
     /**
      * 检查字符，防止注入绕过
@@ -77,9 +88,9 @@ public class SqlUtil {
             return sort;
         }
         // 是否为后端写法格式 eg：-update_time,+id,-order_by
-        if (sort.contains(PageParam.REDUCE) || sort.contains(PageParam.PLUS)) {
+        if (sort.contains(REDUCE) || sort.contains(PLUS)) {
             // 按逗号拆分
-            String[] sorts = sort.split(PageParam.COMMA);
+            String[] sorts = sort.split(COMMA);
             if (ArrayUtil.isEmpty(sorts)) {
                 return sort;
             }
@@ -87,16 +98,16 @@ public class SqlUtil {
             StringBuilder stringBuilder = new StringBuilder();
             for (String item : sorts) {
                 // 正序
-                if (item.startsWith(PageParam.PLUS)) {
+                if (item.startsWith(PLUS)) {
                     stringBuilder.append(StringUtils.toUnderScoreCase(item.substring(1))).append(ASC_SUFFIX);
                 }
                 // 倒序
-                if (item.startsWith(PageParam.REDUCE)) {
+                if (item.startsWith(REDUCE)) {
                     stringBuilder.append(StringUtils.toUnderScoreCase(item.substring(1))).append(DESC_SUFFIX);
                 }
             }
             // 移除最后一个逗号和空格
-            if (stringBuilder.toString().endsWith(PageParam.SPACE)) {
+            if (stringBuilder.toString().endsWith(SPACE)) {
                 stringBuilder.setLength(stringBuilder.length() - 2);
             }
             return stringBuilder.toString();

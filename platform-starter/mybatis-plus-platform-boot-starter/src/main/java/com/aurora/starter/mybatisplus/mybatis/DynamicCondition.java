@@ -3,13 +3,11 @@ package com.aurora.starter.mybatisplus.mybatis;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
-import com.aurora.starter.common.core.model.SortBy;
-import com.aurora.starter.common.core.page.PageParam;
 import com.aurora.starter.common.utils.bean.ReflectUtils;
 import com.aurora.starter.mybatisplus.annotation.QueryField;
-import com.aurora.starter.mybatisplus.model.BaseQuery;
 import com.aurora.starter.mybatisplus.enums.BetweenType;
 import com.aurora.starter.mybatisplus.model.BetweenQueryAttribute;
+import com.aurora.starter.mybatisplus.model.PageParam;
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.StringPool;
@@ -37,25 +35,13 @@ import java.util.stream.Collectors;
 public class DynamicCondition {
 
     /**
-     * 转换Wrapper条件.
+     * 转换 Wrapper 条件（根据 query 对象的 @QueryField 注解动态构造查询条件）.
      *
-     * @param query 查询参数
-     * @param <T>   类型
-     * @return Wrapper
+     * @param query 查询参数对象
+     * @param <T>   实体类型
+     * @return MyBatis-Plus QueryWrapper
      */
     public static <T> Wrapper<T> toWrapper(final Object query) {
-        return toWrapper(query, null);
-    }
-
-    /**
-     * 转换Wrapper条件.
-     *
-     * @param query 查询参数
-     * @param sort  排序
-     * @param <T>   类型
-     * @return Wrapper
-     */
-    public static <T> Wrapper<T> toWrapper(final Object query, final SortBy sort) {
         QueryWrapper<T> wrapper = Wrappers.query();
         if (ObjectUtil.isEmpty(query)) {
             return wrapper;
@@ -71,9 +57,11 @@ public class DynamicCondition {
                 continue;
             }
             // 根据属性上的注解获取查询条件
-            cond = field.isAnnotationPresent(QueryField.class) ? QueryCondition.of(field.getAnnotation(QueryField.class)) : QueryCondition.defaultCondition();
+            cond = field.isAnnotationPresent(QueryField.class)
+                ? QueryCondition.of(field.getAnnotation(QueryField.class))
+                : QueryCondition.defaultCondition();
 
-            // 属性值为 空字符串 判断
+            // 属性值为空字符串判断
             boolean isBlank = field.getType() == String.class && StringUtils.isBlank((String) value);
             if (cond.isIgnore() || (!cond.isQueryEmpty() && isBlank)) {
                 continue;
@@ -81,7 +69,7 @@ public class DynamicCondition {
             if (StringUtils.isBlank(cond.getFiledName())) {
                 cond.setFiledName(field.getName());
             }
-            // mybatis-plus 将查询字段 属性名转为数据库列名（此处为驼峰转下划线）
+            // MyBatis-Plus 将查询字段属性名转为数据库列名（驼峰转下划线）
             cond.setFiledName(StringUtils.camelToUnderline(cond.getFiledName()));
 
             // 多字段组 OR 查询组合
@@ -98,11 +86,6 @@ public class DynamicCondition {
             } else {
                 appendCondition(wrapper, cond, field, value);
             }
-        }
-
-        // 排序
-        if (Objects.nonNull(sort) && CollUtil.isNotEmpty(sort.getOrders())) {
-            sort.getOrders().forEach(x -> wrapper.orderBy(StringUtils.isNotBlank(x.getProperty()), SortBy.Direction.ASC == x.getDirection(), x.getProperty()));
         }
 
         return wrapper;
