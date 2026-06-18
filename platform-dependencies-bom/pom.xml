@@ -29,6 +29,7 @@
 
         <!-- Spring Boot -->
         <spring.boot.version>3.5.0</spring.boot.version>
+        <redisson.version>3.52.0</redisson.version>
         <skipTests>true</skipTests>
     </properties>
 
@@ -49,6 +50,12 @@
             <dependency>
                 <groupId>com.aurora</groupId>
                 <artifactId>knife4j-platform-boot-starter</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.aurora</groupId>
+                <artifactId>redis-platform-boot-starter</artifactId>
                 <version>${revision}</version>
             </dependency>
 
@@ -138,6 +145,12 @@
                 <groupId>org.springdoc</groupId>
                 <artifactId>springdoc-openapi-starter-common</artifactId>
                 <version>${springdoc.version}</version>
+            </dependency>
+            <!-- Redisson Spring Boot Starter -->
+            <dependency>
+                <groupId>org.redisson</groupId>
+                <artifactId>redisson-spring-boot-starter</artifactId>
+                <version>${redisson.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

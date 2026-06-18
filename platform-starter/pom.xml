@@ -21,6 +21,7 @@
     <modules>
         <module>mybatis-plus-platform-boot-starter</module>
         <module>knife4j-platform-boot-starter</module>
+        <module>redis-platform-boot-starter</module>
     </modules>
 
     <build>
