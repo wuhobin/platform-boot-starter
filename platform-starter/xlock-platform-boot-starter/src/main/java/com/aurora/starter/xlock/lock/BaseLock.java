@@ -4,7 +4,6 @@ import com.aurora.starter.xlock.exception.LockException;
 import com.aurora.starter.xlock.model.KeyInfo;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Objects;
 
@@ -18,15 +17,10 @@ public abstract class BaseLock implements Lock {
     /**
      * redisson 客户端.
      */
-    private RedissonClient redissonClient;
+    protected final RedissonClient redissonClient;
 
-    public RedissonClient getRedissonClient() {
-        return redissonClient;
-    }
-
-    @Autowired
-    public void setRedissonClient(final RedissonClient redissonClient) {
-        this.redissonClient = redissonClient;
+    protected BaseLock(final RedissonClient redissonClient) {
+        this.redissonClient = Objects.requireNonNull(redissonClient, "redissonClient 不能为null");
     }
 
     @Override
@@ -46,7 +40,7 @@ public abstract class BaseLock implements Lock {
                 return lock.tryLock(keyInfo.getLeaseTime(), keyInfo.getTimeUnit());
             }
         } catch (InterruptedException e) {
-            throw new RuntimeException("thread interrupted");
+            Thread.currentThread().interrupt();
         }
         return false;
     }
@@ -59,28 +53,20 @@ public abstract class BaseLock implements Lock {
         }
 
         RLock lock = getLock(keyInfo);
-        if (!enableLeaseTime(keyInfo) && !enableWaitTime(keyInfo)) {
-            lock.lock();
-            return;
-        }
-
-        if (enableLeaseTime(keyInfo) && !enableWaitTime(keyInfo)) {
-            lock.lock(keyInfo.getLeaseTime(), keyInfo.getTimeUnit());
-            return;
-        }
-
         if (enableWaitTime(keyInfo)) {
             try {
                 if (!lock.tryLock(keyInfo.getWaitTime(), keyInfo.getLeaseTime(), keyInfo.getTimeUnit())) {
                     throw new LockException("获取锁失败：" + keyInfo.getKey());
                 }
-            } catch (InterruptedException interruptedException) {
-                throw new RuntimeException("thread interrupted");
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new LockException("获取锁被中断：" + keyInfo.getKey(), e);
             }
-            return;
+        } else if (enableLeaseTime(keyInfo)) {
+            lock.lock(keyInfo.getLeaseTime(), keyInfo.getTimeUnit());
+        } else {
+            lock.lock();
         }
-
-        lock.lock();
     }
 
     @Override

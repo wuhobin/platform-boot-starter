@@ -1,7 +1,6 @@
 package com.aurora.starter.xlock.interceptor;
 
 
-import com.aurora.starter.common.utils.bean.ReflectUtils;
 import com.aurora.starter.xlock.annotation.XLock;
 import com.aurora.starter.xlock.model.KeyInfo;
 import com.aurora.starter.xlock.service.LockService;
@@ -11,8 +10,6 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
-
-import java.util.Arrays;
 
 /**
  * 锁拦截器.
@@ -39,18 +36,17 @@ public class XLockInterceptor {
      */
     @Around(value = "@annotation(xLock)")
     public Object around(final ProceedingJoinPoint joinPoint, final XLock xLock) {
-        String[] args = Arrays.stream(joinPoint.getArgs()).map(ReflectUtils::processObject).toArray(String[]::new);
         if (!xLock.disableLog()) {
-            log.info("[分布式锁] - 拦截进入处理：{} {}", joinPoint, args);
+            log.info("[分布式锁] - 拦截进入处理：{}", joinPoint);
         }
         KeyInfo keyInfo = xLockSpelResolver.getKeyInfo(joinPoint, xLock);
         return lockService.lock(keyInfo, xLock.lockType(), () -> {
             try {
                 return joinPoint.proceed();
-            } catch (RuntimeException e) {
+            } catch (Exception e) {
                 throw e;
             } catch (Throwable e) {
-                throw new Exception(e);
+                throw new RuntimeException(e);
             }
         });
     }

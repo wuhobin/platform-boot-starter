@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
  *
  * @author whb
  */
-@Data
+@Getter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -50,7 +50,7 @@ public final class KeyInfo {
      * @return key信息
      */
     public String getKey() {
-        return KEY_PREFIX + prefix + "-"+ StringUtils.arrayToDelimitedString(getKeys(), "-");
+        return KEY_PREFIX + prefix + "-" + StringUtils.arrayToDelimitedString(getKeys(), "-");
     }
 
     public List<String> getRealKeys() {

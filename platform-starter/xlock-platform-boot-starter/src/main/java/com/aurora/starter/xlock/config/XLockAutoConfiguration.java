@@ -5,6 +5,7 @@ import com.aurora.starter.xlock.interceptor.XLockSpelResolver;
 import com.aurora.starter.xlock.lock.*;
 import com.aurora.starter.xlock.service.LockFactory;
 import com.aurora.starter.xlock.service.LockService;
+import org.redisson.api.RedissonClient;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -36,74 +37,60 @@ public class XLockAutoConfiguration {
 
     /**
      * 可重入锁加锁服务.
-     *
-     * @return 可重入锁加锁服务.
      */
     @Bean
     @ConditionalOnMissingBean
-    public ReentrantLock reentrantLock() {
-        return new ReentrantLock();
+    public ReentrantLock reentrantLock(final RedissonClient redissonClient) {
+        return new ReentrantLock(redissonClient);
     }
 
     /**
      * 公平锁操作服务.
-     *
-     * @return 公平锁操作服务
      */
     @Bean
     @ConditionalOnMissingBean
-    public FairLock fairLock() {
-        return new FairLock();
+    public FairLock fairLock(final RedissonClient redissonClient) {
+        return new FairLock(redissonClient);
     }
 
     /**
      * 联锁操作服务.
-     *
-     * @return 联锁操作服务
      */
     @Bean
     @ConditionalOnMissingBean
-    public MultiLock multiLock() {
-        return new MultiLock();
+    public MultiLock multiLock(final RedissonClient redissonClient) {
+        return new MultiLock(redissonClient);
     }
 
     /**
      * 红锁操作服务.
-     *
-     * @return 红锁操作服务
      */
     @Bean
     @ConditionalOnMissingBean
-    public RedLock redLock() {
-        return new RedLock();
+    public RedLock redLock(final RedissonClient redissonClient) {
+        return new RedLock(redissonClient);
     }
 
     /**
      * 读锁操作服务.
-     *
-     * @return 读锁操作服务
      */
     @Bean
     @ConditionalOnMissingBean
-    public ReadLock readLock() {
-        return new ReadLock();
+    public ReadLock readLock(final RedissonClient redissonClient) {
+        return new ReadLock(redissonClient);
     }
 
     /**
      * 写锁操作服务.
-     *
-     * @return 写锁操作服务
      */
     @Bean
     @ConditionalOnMissingBean
-    public WriteLock writeLock() {
-        return new WriteLock();
+    public WriteLock writeLock(final RedissonClient redissonClient) {
+        return new WriteLock(redissonClient);
     }
 
     /**
      * spring el解析key策略.
-     *
-     * @return spring el解析key策略
      */
     @Bean
     @ConditionalOnMissingBean
@@ -113,8 +100,6 @@ public class XLockAutoConfiguration {
 
     /**
      * 锁拦截器.
-     *
-     * @return 锁拦截器
      */
     @Bean
     @ConditionalOnMissingBean

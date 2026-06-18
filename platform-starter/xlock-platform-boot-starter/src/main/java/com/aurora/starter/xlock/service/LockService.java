@@ -43,9 +43,9 @@ public class LockService {
      * @param <T> 响应结果
      */
     public <T> T lock(KeyInfo keyInfo, XLockType lockType, Callable<T> callable) {
-        Lock lockService = lockFactory.getService(lockType);
+        Lock lockImpl = lockFactory.getService(lockType);
         try {
-            lockService.lock(keyInfo);
+            lockImpl.lock(keyInfo);
 
             T result = callable.call();
             if (!keyInfo.isDisableLog()) {
@@ -55,11 +55,11 @@ public class LockService {
         } catch (RuntimeException ex) {
             log.warn("[分布式锁] - 运行异常：导致锁释放[{}]", keyInfo, ex);
             throw ex;
-        } catch (Throwable t) {
-            log.warn("[分布式锁] - 内部异常：导致锁释放[{}]", keyInfo, t);
-            throw new LockException(StringUtils.defaultIfBlank(keyInfo.getErrorMessage(), "操作频繁，请稍后再试！"), t);
+        } catch (Exception ex) {
+            log.warn("[分布式锁] - 内部异常：导致锁释放[{}]", keyInfo, ex);
+            throw new LockException(StringUtils.defaultIfBlank(keyInfo.getErrorMessage(), "操作频繁，请稍后再试！"), ex);
         } finally {
-            lockService.unlock(keyInfo);
+            lockImpl.unlock(keyInfo);
         }
     }
 

@@ -32,10 +32,9 @@ import java.util.Objects;
 @Slf4j
 public class XLockSpelResolver {
 
-
     private static final ParameterNameDiscoverer PARAMETER_NAME_DISCOVERER = new DefaultParameterNameDiscoverer();
 
-    private static final ExpressionParser EXPRESSION_PARSER = new SpelExpressionParser();
+    private static final ExpressionParser SPEL_PARSER = new SpelExpressionParser();
 
     /**
      * 获取KeyInfo.
@@ -45,10 +44,9 @@ public class XLockSpelResolver {
      * @return KeyInfo
      */
     public KeyInfo getKeyInfo(final JoinPoint joinPoint, final XLock xLock) {
-        String key = joinPoint.toString();
         KeyInfo keyInfo = genKeyInfo(joinPoint, xLock);
         if (!xLock.disableLog()) {
-            log.info("[分布式锁] - 获取当前线程keyInfo:{} {}", key, keyInfo);
+            log.info("[分布式锁] - 获取当前线程keyInfo:{} {}", joinPoint, keyInfo);
         }
         return keyInfo;
     }
@@ -64,14 +62,14 @@ public class XLockSpelResolver {
     private KeyInfo genKeyInfo(final JoinPoint joinPoint, final XLock xLock) throws LockKeyBuilderException {
         final Object[] args = joinPoint.getArgs();
         Method method = getMethod(joinPoint);
-        KeyInfo.KeyInfoBuilder builder = KeyInfo.builder()
+        return KeyInfo.builder()
             .prefix(xLock.prefix())
             .keys(getKeys(method, xLock.keys(), args))
             .leaseTime(xLock.leaseTime()).waitTime(xLock.waitTime())
             .timeUnit(xLock.timeUnit())
             .disableLog(xLock.disableLog())
-            .errorMessage(xLock.errorMessage());
-        return builder.build();
+            .errorMessage(xLock.errorMessage())
+            .build();
     }
 
     private String[] getKeys(Method method, String[] keys, Object[] args) {
@@ -82,12 +80,13 @@ public class XLockSpelResolver {
             for (String key : keys) {
                 if (StringUtils.hasLength(key)) {
                     try {
-                        Expression expression = EXPRESSION_PARSER.parseExpression(key);
+                        Expression expression = SPEL_PARSER.parseExpression(key);
                         Object val = expression.getValue(context);
                         if (Objects.nonNull(val)) {
                             result.add(val.toString());
                         }
                     } catch (Exception e) {
+                        log.warn("[分布式锁] - SpEL表达式解析失败, 使用原始值: {}", key, e);
                         result.add(key);
                     }
                 }
@@ -96,12 +95,12 @@ public class XLockSpelResolver {
         //获取锁方法参数的注解key
         Parameter[] parameters = method.getParameters();
         for (int i = 0; i < parameters.length; i++) {
-            if (parameters[i].getAnnotation(XKey.class) != null) {
-                XKey anno = parameters[i].getAnnotation(XKey.class);
+            XKey anno = parameters[i].getAnnotation(XKey.class);
+            if (anno != null) {
                 if (anno.value().isEmpty()) {
                     result.add(args[i].toString());
                 } else {
-                    Object key = EXPRESSION_PARSER.parseExpression(anno.value()).getValue(new StandardEvaluationContext(args[i]));
+                    Object key = SPEL_PARSER.parseExpression(anno.value()).getValue(new StandardEvaluationContext(args[i]));
                     if (Objects.nonNull(key)) {
                         result.add(key.toString());
                     }

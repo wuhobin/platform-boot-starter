@@ -3,6 +3,7 @@ package com.aurora.starter.xlock.lock;
 import com.aurora.starter.xlock.model.KeyInfo;
 import org.redisson.RedissonMultiLock;
 import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 
 import java.util.List;
 
@@ -13,12 +14,16 @@ import java.util.List;
  */
 public class MultiLock extends BaseLock implements Lock {
 
+    public MultiLock(final RedissonClient redissonClient) {
+        super(redissonClient);
+    }
+
     @Override
     public RLock getLock(final KeyInfo keyInfo) {
-         List<String> keys = keyInfo.getRealKeys();
+        List<String> keys = keyInfo.getRealKeys();
         RLock[] lockList = new RLock[keys.size()];
         for (int i = 0, size = keys.size(); i < size; i++) {
-            lockList[i] = getRedissonClient().getLock(keys.get(i));
+            lockList[i] = redissonClient.getLock(keys.get(i));
         }
         return new RedissonMultiLock(lockList);
     }
@@ -26,6 +31,8 @@ public class MultiLock extends BaseLock implements Lock {
     @Override
     public void unlock(final KeyInfo keyInfo) {
         RLock lock = getLock(keyInfo);
-        lock.unlock();
+        if (lock.isHeldByCurrentThread()) {
+            lock.unlock();
+        }
     }
 }
