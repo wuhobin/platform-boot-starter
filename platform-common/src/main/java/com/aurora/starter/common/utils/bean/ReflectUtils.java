@@ -3,8 +3,7 @@ package com.aurora.starter.common.utils.bean;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ClassUtil;
 import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.json.JSON;
-import cn.hutool.json.JSONUtil;
+import com.aurora.starter.common.utils.JsonUtil;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -442,5 +441,38 @@ public class ReflectUtils {
         }
         PART_FIELD_CACHE.put(key, fileds);
         return fileds;
+    }
+
+
+    /**
+     * 处理对象数据转String
+     *   默认数据类型直接转String
+     *   集合、数组，Map 仅打印长度
+     *   其他对象根据属性处理，最终结果转json
+     *
+     * @param obj 需要处理的对象
+     * @return 长度超过二十则打印长度，否则打印数据内容
+     */
+    public static String processObject(Object obj) {
+        if (Objects.isNull(obj)) {
+            return null;
+        }
+        if (ClassUtil.isSimpleValueType(obj.getClass())) {
+            return String.valueOf(obj);
+        }
+        if (obj instanceof Collection || obj instanceof Map || obj.getClass().isArray()) {
+            int len = ObjectUtil.length(obj);
+            return String.format("%s@%s", obj.getClass(), len);
+        }
+        Map<String, Object> map = new HashMap<>();
+        ReflectionUtils.doWithFields(obj.getClass(), f -> {
+            f.setAccessible(true);
+            if (obj.getClass() == f.getType()) {
+                map.put(f.getName(), JsonUtil.toJson(f.get(obj)));
+            } else {
+                map.put(f.getName(), processObject(f.get(obj)));
+            }
+        }, f -> !Modifier.isStatic(f.getModifiers()) || !Modifier.isFinal(f.getModifiers()));
+        return JsonUtil.toJson(map);
     }
 }

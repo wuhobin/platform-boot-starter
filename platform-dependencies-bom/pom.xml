@@ -22,9 +22,6 @@
         <jackson.version>2.17.0</jackson.version>
         <jackson-datatype-jsr310.version>2.9.9</jackson-datatype-jsr310.version>
         <knife4j.version>4.5.0</knife4j.version>
-        <!-- knife4j 4.5.0 自带的 springdoc 2.3.0 调用了 Spring 6.1 时代的
-             ControllerAdviceBean(Object) 构造器，与 Spring 6.2（Spring Boot 3.5）不兼容（NoSuchMethodError）。
-             显式锁到 2.8.6，该版本同步支持 Spring Boot 3.4/3.5。 -->
         <springdoc.version>2.8.6</springdoc.version>
 
         <!-- Spring Boot -->
@@ -56,6 +53,12 @@
             <dependency>
                 <groupId>com.aurora</groupId>
                 <artifactId>redis-platform-boot-starter</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.aurora</groupId>
+                <artifactId>xlock-platform-boot-starter</artifactId>
                 <version>${revision}</version>
             </dependency>
 
