@@ -57,31 +57,6 @@ spring:
     init:
       mode: never
 
-mybatis-plus:
-  ext:
-    # 禁止无条件全表扫描的表
-    disable-full-scan-table:
-      - t_user
-    # 动态表名配置
-    dynamic-table:
-      enable: true
-      tables:
-        - t_log
-      fallback-to-current-month: false
-
-# Knife4j 扩展配置（自定义文档元信息）
-knife4j:
-  ext:
-    title: Platform Example API
-    description: platform-boot-starter 示例工程的接口文档
-    version: 1.0.0
-    contact:
-      name: whb
-      email: whb@aurora.com
-  # Knife4j 官方增强配置
-  setting:
-    language: zh_cn
-
 # springdoc 分组与扫描
 springdoc:
   api-docs:
@@ -95,8 +70,28 @@ springdoc:
       paths-to-match: /**
       packages-to-scan: com.aurora.example.controller
 
-# Redis 布隆过滤器配置
+# 各 starter 统一配置前缀
 platform:
+  # MyBatis-Plus 扩展配置
+  mybatis-plus:
+    disable-full-scan-table:
+      - t_user
+    dynamic-table:
+      enable: true
+      tables:
+        - t_log
+      fallback-to-current-month: false
+
+  # Knife4j 扩展配置
+  knife4j:
+    title: Platform Example API
+    description: platform-boot-starter 示例工程的接口文档
+    version: 1.0.0
+    contact:
+      name: whb
+      email: whb@aurora.com
+
+  # Redis 布隆过滤器配置
   redis:
     bloom-filter:
       enabled: true
@@ -108,6 +103,11 @@ platform:
           expected-insertions: 5000000
           false-positive-probability: 0.03
           ttl: 30d
+
+# Knife4j 官方增强配置
+knife4j:
+  setting:
+    language: zh_cn
 
 logging:
   level:

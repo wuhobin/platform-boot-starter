@@ -15,7 +15,7 @@ import java.util.List;
 @ConfigurationProperties(prefix = MpExtProperties.MP_EXT_PREFIX)
 public class MpExtProperties {
 
-    public static final String MP_EXT_PREFIX = "mybatis-plus.ext";
+    public static final String MP_EXT_PREFIX = "platform.mybatis-plus";
 
     /**
      * 动态表名配置.

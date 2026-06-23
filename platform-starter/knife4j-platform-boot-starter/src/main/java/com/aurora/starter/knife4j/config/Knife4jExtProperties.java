@@ -16,7 +16,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = Knife4jExtProperties.PREFIX)
 public class Knife4jExtProperties {
 
-    public static final String PREFIX = "knife4j.ext";
+    public static final String PREFIX = "platform.knife4j";
 
     /**
      * 总开关。

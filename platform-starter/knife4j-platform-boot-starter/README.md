@@ -25,8 +25,8 @@
 ## 二、最小配置
 
 ```yaml
-knife4j:
-  ext:
+platform:
+  knife4j:
     title: 用户中心 API
 
 springdoc:
@@ -51,24 +51,24 @@ springdoc:
 激活条件：
 
 - classpath 存在 `io.swagger.v3.oas.models.OpenAPI`（即引入了本 starter 或 springdoc）
-- `knife4j.ext.enable=true`（默认值）
+- `platform.knife4j.enable=true`（默认值）
 
 ---
 
-## 四、`knife4j.ext` 完整配置项
+## 四、`platform.knife4j` 完整配置项
 
 | 配置 | 类型 | 默认 | 说明 |
 | --- | --- | --- | --- |
-| `knife4j.ext.enable` | boolean | `true` | 总开关，关闭后不注入默认 `OpenAPI` Bean |
-| `knife4j.ext.title` | String | `Aurora API` | 文档标题 |
-| `knife4j.ext.description` | String | `""` | 文档描述 |
-| `knife4j.ext.version` | String | `1.0.0` | API 版本 |
-| `knife4j.ext.terms-of-service-url` | String | — | 服务条款 URL |
-| `knife4j.ext.contact.name` | String | — | 联系人姓名 |
-| `knife4j.ext.contact.email` | String | — | 联系人邮箱 |
-| `knife4j.ext.contact.url` | String | — | 联系人主页 |
-| `knife4j.ext.license.name` | String | — | 协议名（如 Apache 2.0） |
-| `knife4j.ext.license.url` | String | — | 协议 URL |
+| `platform.knife4j.enable` | boolean | `true` | 总开关，关闭后不注入默认 `OpenAPI` Bean |
+| `platform.knife4j.title` | String | `Aurora API` | 文档标题 |
+| `platform.knife4j.description` | String | `""` | 文档描述 |
+| `platform.knife4j.version` | String | `1.0.0` | API 版本 |
+| `platform.knife4j.terms-of-service-url` | String | — | 服务条款 URL |
+| `platform.knife4j.contact.name` | String | — | 联系人姓名 |
+| `platform.knife4j.contact.email` | String | — | 联系人邮箱 |
+| `platform.knife4j.contact.url` | String | — | 联系人主页 |
+| `platform.knife4j.license.name` | String | — | 协议名（如 Apache 2.0） |
+| `platform.knife4j.license.url` | String | — | 协议 URL |
 
 `contact` / `license` 整组字段全为空时，不挂到 `OpenAPI.info`。
 
