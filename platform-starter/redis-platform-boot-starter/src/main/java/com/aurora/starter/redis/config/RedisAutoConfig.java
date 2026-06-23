@@ -80,7 +80,8 @@ public class RedisAutoConfig {
      * @param properties     布隆过滤器配置属性
      * @return name -> RedisBloomFilter 的 Map
      */
-    @Bean
+    @Bean(name = "redisBloomFilters")
+    @ConditionalOnMissingBean(name = "redisBloomFilters")
     @ConditionalOnProperty(prefix = "platform.redis.bloom-filter", name = "enabled", havingValue = "true")
     public Map<String, RedisBloomFilter<?>> redisBloomFilters(
             Redisson redissonClient,
@@ -90,11 +91,8 @@ public class RedisAutoConfig {
             BloomFilterProperties.FilterConfig::getName,
             cfg -> {
                 RBloomFilter<Object> rf = redissonClient.getBloomFilter(cfg.getName());
-                if (!rf.tryInit(cfg.getExpectedInsertions(), cfg.getFalsePositiveProbability())) {
-                    throw new IllegalStateException(
-                        "Bloom filter [" + cfg.getName() + "] init failed: "
-                        + "already exists with different parameters");
-                }
+                // tryInit returns false if already exists (e.g., restart) — that's OK, just use it
+                rf.tryInit(cfg.getExpectedInsertions(), cfg.getFalsePositiveProbability());
                 return new RedisBloomFilter<>(rf, cfg.getName(),
                     cfg.getExpectedInsertions(), cfg.getFalsePositiveProbability());
             },
