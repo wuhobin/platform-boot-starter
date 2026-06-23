@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RBloomFilter;
 
+import java.util.Objects;
 import java.util.function.Supplier;
 
 /**
@@ -15,6 +16,7 @@ import java.util.function.Supplier;
  *
  * @param <T> 元素类型
  * @author whb
+ * @date 2026-06-23
  */
 @Slf4j
 public class RedisBloomFilter<T> {
@@ -32,8 +34,8 @@ public class RedisBloomFilter<T> {
 
     public RedisBloomFilter(RBloomFilter<T> bloomFilter, String name,
                             long expectedInsertions, double falsePositiveProbability) {
-        this.bloomFilter = bloomFilter;
-        this.name = name;
+        this.bloomFilter = Objects.requireNonNull(bloomFilter, "bloomFilter must not be null");
+        this.name = Objects.requireNonNull(name, "name must not be null");
         this.expectedInsertions = expectedInsertions;
         this.falsePositiveProbability = falsePositiveProbability;
     }
@@ -98,13 +100,13 @@ public class RedisBloomFilter<T> {
      * <p>
      * 如果布隆过滤器误判（contains 返回 true 但 loader 返回 null），会打印 warn 日志。
      *
-     * @param cacheKey 缓存 key（同时作为布隆过滤器的检查值）
+     * @param cacheKey 缓存 key（与布隆过滤器元素类型一致）
      * @param loader   数据加载器（如查询 Redis、数据库）
      * @param <R>      返回值类型
      * @return 数据，不存在返回 null
      */
-    public <R> R protect(String cacheKey, Supplier<R> loader) {
-        if (!bloomFilter.contains((T) cacheKey)) {
+    public <R> R protect(T cacheKey, Supplier<R> loader) {
+        if (!bloomFilter.contains(cacheKey)) {
             return null;
         }
         R result = loader.get();
