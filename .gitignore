@@ -37,3 +37,4 @@ docs/
 
 ### flatten-maven-plugin 生成物 ###
 .flattened-pom.xml
+.playwright-mcp

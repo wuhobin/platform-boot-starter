@@ -34,14 +34,18 @@ public final class KeyInfo {
 
     private String[] keys;
 
+    @Builder.Default
     private long leaseTime = -1L;
 
+    @Builder.Default
     private long waitTime = -1L;
 
+    @Builder.Default
     private TimeUnit timeUnit = TimeUnit.SECONDS;
 
     private String errorMessage;
 
+    @Builder.Default
     private boolean disableLog = false;
 
     /**
