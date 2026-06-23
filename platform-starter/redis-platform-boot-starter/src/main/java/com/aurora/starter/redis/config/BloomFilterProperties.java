@@ -7,6 +7,7 @@ import org.springframework.validation.annotation.Validated;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,5 +45,8 @@ public class BloomFilterProperties {
         /** 期望误判率，0 < value < 1（必填） */
         @NotNull
         private Double falsePositiveProbability;
+
+        /** 过期时间，不配则永久有效 */
+        private Duration ttl;
     }
 }

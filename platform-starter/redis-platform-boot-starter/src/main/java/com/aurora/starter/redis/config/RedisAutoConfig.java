@@ -97,6 +97,9 @@ public class RedisAutoConfig {
                 RBloomFilter<Object> rf = redissonClient.getBloomFilter(cacheKey);
                 // tryInit returns false if already exists (e.g., restart) — that's OK, just use it
                 rf.tryInit(cfg.getExpectedInsertions(), cfg.getFalsePositiveProbability());
+                if (cfg.getTtl() != null) {
+                    rf.expire(cfg.getTtl());
+                }
                 return new RedisBloomFilter<>(rf, cfg.getName(),
                     cfg.getExpectedInsertions(), cfg.getFalsePositiveProbability());
             }
