@@ -32,12 +32,17 @@ public class RedisBloomFilter<T> {
     @Getter
     private final double falsePositiveProbability;
 
+    private final int hashIterations;
+    private final long size;
+
     public RedisBloomFilter(RBloomFilter<T> bloomFilter, String name,
                             long expectedInsertions, double falsePositiveProbability) {
         this.bloomFilter = Objects.requireNonNull(bloomFilter, "bloomFilter must not be null");
         this.name = Objects.requireNonNull(name, "name must not be null");
         this.expectedInsertions = expectedInsertions;
         this.falsePositiveProbability = falsePositiveProbability;
+        this.hashIterations = bloomFilter.getHashIterations();
+        this.size = bloomFilter.getSize();
     }
 
     /**
@@ -88,10 +93,10 @@ public class RedisBloomFilter<T> {
     public BloomFilterStats getStats() {
         return new BloomFilterStats(
                 bloomFilter.count(),
-                bloomFilter.getExpectedInsertions(),
-                bloomFilter.getFalseProbability(),
-                bloomFilter.getHashIterations(),
-                bloomFilter.getSize()
+                this.expectedInsertions,
+                this.falsePositiveProbability,
+                this.hashIterations,
+                this.size
         );
     }
 
