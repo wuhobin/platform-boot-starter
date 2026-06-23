@@ -1,17 +1,24 @@
 package com.aurora.starter.redis.config;
 
 import com.aurora.starter.redis.core.JsonRedisTemplate;
+import com.aurora.starter.redis.core.RedisBloomFilter;
 import com.aurora.starter.redis.core.RedisCache;
 import com.aurora.starter.redis.core.RedisMessageQueue;
 import com.aurora.starter.redis.core.RedisRateLimiter;
 import org.redisson.Redisson;
+import org.redisson.api.RBloomFilter;
 import org.redisson.codec.JsonJacksonCodec;
 import org.redisson.spring.starter.RedissonAutoConfigurationCustomizer;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Redis 自动配置.
@@ -19,6 +26,7 @@ import org.springframework.data.redis.core.RedisTemplate;
  * @author whb
  */
 @AutoConfiguration
+@EnableConfigurationProperties(BloomFilterProperties.class)
 public class RedisAutoConfig {
 
     /**
@@ -61,5 +69,36 @@ public class RedisAutoConfig {
     @Bean
     public RedisMessageQueue redisMessageQueue(Redisson redissonClient) {
         return new RedisMessageQueue(redissonClient);
+    }
+
+    /**
+     * 布隆过滤器 Map，key 为配置中的 name，value 为对应的 RedisBloomFilter 实例.
+     * <p>
+     * 仅当 platform.redis.bloom-filter.enabled=true 时生效。
+     *
+     * @param redissonClient redisson 客户端
+     * @param properties     布隆过滤器配置属性
+     * @return name -> RedisBloomFilter 的 Map
+     */
+    @Bean
+    @ConditionalOnProperty(prefix = "platform.redis.bloom-filter", name = "enabled", havingValue = "true")
+    public Map<String, RedisBloomFilter<?>> redisBloomFilters(
+            Redisson redissonClient,
+            BloomFilterProperties properties) {
+
+        return properties.getFilters().stream().collect(Collectors.toMap(
+            BloomFilterProperties.FilterConfig::getName,
+            cfg -> {
+                RBloomFilter<Object> rf = redissonClient.getBloomFilter(cfg.getName());
+                if (!rf.tryInit(cfg.getExpectedInsertions(), cfg.getFalsePositiveProbability())) {
+                    throw new IllegalStateException(
+                        "Bloom filter [" + cfg.getName() + "] init failed: "
+                        + "already exists with different parameters");
+                }
+                return new RedisBloomFilter<>(rf, cfg.getName(),
+                    cfg.getExpectedInsertions(), cfg.getFalsePositiveProbability());
+            },
+            (existing, replacement) -> replacement
+        ));
     }
 }
