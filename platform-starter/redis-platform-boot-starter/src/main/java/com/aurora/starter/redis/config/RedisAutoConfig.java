@@ -99,8 +99,7 @@ public class RedisAutoConfig {
                 rf.tryInit(cfg.getExpectedInsertions(), cfg.getFalsePositiveProbability());
                 return new RedisBloomFilter<>(rf, cfg.getName(),
                     cfg.getExpectedInsertions(), cfg.getFalsePositiveProbability());
-            },
-            (existing, replacement) -> replacement
+            }
         ));
     }
 }
