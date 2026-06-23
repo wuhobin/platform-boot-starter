@@ -5,10 +5,10 @@ import com.aurora.starter.common.utils.StringUtils;
 import com.aurora.starter.redis.exception.RateLimiterException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.redisson.Redisson;
 import org.redisson.api.RRateLimiter;
 import org.redisson.api.RateIntervalUnit;
 import org.redisson.api.RateType;
+import org.redisson.api.RedissonClient;
 
 import java.time.Duration;
 import java.util.concurrent.ConcurrentHashMap;
@@ -32,7 +32,7 @@ public class RedisRateLimiter {
 
     private final ConcurrentMap<String, Boolean> configuredKeys = new ConcurrentHashMap<>();
 
-    private final Redisson redissonClient;
+    private final RedissonClient redissonClient;
 
     /**
      * 限流.

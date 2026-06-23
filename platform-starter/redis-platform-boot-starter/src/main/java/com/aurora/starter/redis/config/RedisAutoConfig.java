@@ -6,8 +6,8 @@ import com.aurora.starter.redis.core.RedisBloomFilter;
 import com.aurora.starter.redis.core.RedisCache;
 import com.aurora.starter.redis.core.RedisMessageQueue;
 import com.aurora.starter.redis.core.RedisRateLimiter;
-import org.redisson.Redisson;
 import org.redisson.api.RBloomFilter;
+import org.redisson.api.RedissonClient;
 import org.redisson.codec.JsonJacksonCodec;
 import org.redisson.spring.starter.RedissonAutoConfigurationCustomizer;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -59,7 +59,7 @@ public class RedisAutoConfig {
      * @return 限流处理器
      */
     @Bean
-    public RedisRateLimiter redisRateLimiter(Redisson redissonClient) {
+    public RedisRateLimiter redisRateLimiter(RedissonClient redissonClient) {
         return new RedisRateLimiter(redissonClient);
     }
 
@@ -70,7 +70,7 @@ public class RedisAutoConfig {
      * @return 消息阻塞队列
      */
     @Bean
-    public RedisMessageQueue redisMessageQueue(Redisson redissonClient) {
+    public RedisMessageQueue redisMessageQueue(RedissonClient redissonClient) {
         return new RedisMessageQueue(redissonClient);
     }
 
@@ -87,7 +87,7 @@ public class RedisAutoConfig {
     @ConditionalOnMissingBean(name = "redisBloomFilters")
     @ConditionalOnProperty(prefix = "platform.redis.bloom-filter", name = "enabled", havingValue = "true")
     public Map<String, RedisBloomFilter<?>> redisBloomFilters(
-            Redisson redissonClient,
+            RedissonClient redissonClient,
             BloomFilterProperties properties) {
 
         return properties.getFilters().stream().collect(Collectors.toMap(
