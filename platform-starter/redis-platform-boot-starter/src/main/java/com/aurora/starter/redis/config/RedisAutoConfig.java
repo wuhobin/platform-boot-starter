@@ -1,5 +1,6 @@
 package com.aurora.starter.redis.config;
 
+import com.aurora.starter.common.utils.RedisKeyUtil;
 import com.aurora.starter.redis.core.JsonRedisTemplate;
 import com.aurora.starter.redis.core.RedisBloomFilter;
 import com.aurora.starter.redis.core.RedisCache;
@@ -28,6 +29,8 @@ import java.util.stream.Collectors;
 @AutoConfiguration
 @EnableConfigurationProperties(BloomFilterProperties.class)
 public class RedisAutoConfig {
+
+    private static final String BLOOM_FILTER_KEY_PREFIX = "BLOOM_FILTER";
 
     /**
      * JSON 序列化 RedisTemplate.
@@ -90,7 +93,8 @@ public class RedisAutoConfig {
         return properties.getFilters().stream().collect(Collectors.toMap(
             BloomFilterProperties.FilterConfig::getName,
             cfg -> {
-                RBloomFilter<Object> rf = redissonClient.getBloomFilter(cfg.getName());
+                String cacheKey = RedisKeyUtil.generate(BLOOM_FILTER_KEY_PREFIX, cfg.getName());
+                RBloomFilter<Object> rf = redissonClient.getBloomFilter(cacheKey);
                 // tryInit returns false if already exists (e.g., restart) — that's OK, just use it
                 rf.tryInit(cfg.getExpectedInsertions(), cfg.getFalsePositiveProbability());
                 return new RedisBloomFilter<>(rf, cfg.getName(),
