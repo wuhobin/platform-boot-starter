@@ -95,6 +95,20 @@ springdoc:
       paths-to-match: /**
       packages-to-scan: com.aurora.example.controller
 
+# Redis 布隆过滤器配置
+platform:
+  redis:
+    bloom-filter:
+      enabled: true
+      filters:
+        - name: user:bloom
+          expected-insertions: 1000000
+          false-positive-probability: 0.01
+        - name: product:bloom
+          expected-insertions: 5000000
+          false-positive-probability: 0.03
+          ttl: 30d
+
 logging:
   level:
     com.aurora: DEBUG
