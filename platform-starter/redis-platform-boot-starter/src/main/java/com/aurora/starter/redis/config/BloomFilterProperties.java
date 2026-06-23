@@ -4,6 +4,7 @@ import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.util.ArrayList;
@@ -26,6 +27,7 @@ public class BloomFilterProperties {
     private boolean enabled = false;
 
     /** 布隆过滤器定义列表 */
+    @Valid
     private List<FilterConfig> filters = new ArrayList<>();
 
     @Data
@@ -41,6 +43,6 @@ public class BloomFilterProperties {
 
         /** 期望误判率，0 < value < 1（必填） */
         @NotNull
-        private Double falseProbability;
+        private Double falsePositiveProbability;
     }
 }
