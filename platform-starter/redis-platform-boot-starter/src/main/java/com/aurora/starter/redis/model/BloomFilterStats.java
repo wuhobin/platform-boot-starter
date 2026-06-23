@@ -8,9 +8,14 @@ import java.io.Serializable;
  * @author whb
  */
 public record BloomFilterStats(
-        long count,
+        /** 已添加元素数量 */
+        long elementCount,
+        /** 预期插入元素数量 */
         long expectedInsertions,
-        double falseProbability,
+        /** 误判率（false positive probability） */
+        double falsePositiveProbability,
+        /** Hash 函数迭代次数 */
         int hashIterations,
-        long size) implements Serializable {
+        /** 位数组大小（bits） */
+        long bitSize) implements Serializable {
 }
