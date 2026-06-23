@@ -1,4 +1,4 @@
-package com.aurora.example.controller;
+package com.aurora.example.controller.redis;
 
 import com.aurora.starter.redis.core.RedisCache;
 import com.aurora.starter.webmvc.domain.response.Result;

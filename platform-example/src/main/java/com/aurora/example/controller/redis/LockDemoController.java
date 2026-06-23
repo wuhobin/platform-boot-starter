@@ -1,4 +1,4 @@
-package com.aurora.example.controller;
+package com.aurora.example.controller.redis;
 
 import com.aurora.starter.webmvc.domain.response.Result;
 import com.aurora.starter.xlock.annotation.XKey;
