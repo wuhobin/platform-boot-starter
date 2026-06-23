@@ -129,18 +129,23 @@ public class RedisCache {
      * 带布隆过滤器防护的缓存查询.
      * <p>
      * Bloom filter 判定不存在则直接返回 null，不查询 Redis，用于防止缓存穿透。
-     * 如果 Bloom filter 判定可能存在但 Redis 中实际不存在（误判），返回 null。
+     * 如果 Bloom filter 判定可能存在但 Redis 中实际不存在（误判），返回 null 并记录 warn 日志。
      *
      * @param key         缓存键值
      * @param bloomFilter 布隆过滤器实例
      * @param <T>         缓存值类型
      * @return 缓存对象，不存在返回 null
+     * @since 1.0.0
      */
     public <T> T getCacheObject(final String key, final RedisBloomFilter<String> bloomFilter) {
         if (!bloomFilter.contains(key)) {
             return null;
         }
-        return this.<T>getCacheObject(key);
+        T result = this.<T>getCacheObject(key);
+        if (result == null) {
+            log.warn("Bloom filter [{}] false positive for cache key [{}]", bloomFilter.getName(), key);
+        }
+        return result;
     }
 
     /**
