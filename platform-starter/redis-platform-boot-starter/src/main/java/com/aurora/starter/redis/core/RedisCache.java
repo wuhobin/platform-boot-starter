@@ -141,7 +141,7 @@ public class RedisCache {
         if (!bloomFilter.contains(key)) {
             return null;
         }
-        T result = this.<T>getCacheObject(key);
+        T result = getCacheObject(key);
         if (result == null) {
             log.warn("Bloom filter [{}] false positive for cache key [{}]", bloomFilter.getName(), key);
         }
