@@ -13,6 +13,7 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.NoHandlerFoundException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 /**
  * 全局异常处理器.
@@ -78,6 +79,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NoHandlerFoundException.class)
     public Result<Void> handleNoHandlerFound(NoHandlerFoundException e) {
         log.warn("路径不存在: {} {}", e.getHttpMethod(), e.getRequestURL());
+        return Result.error(DefaultBizCode.NOT_FOUND);
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public Result<Void> handleNoResourceFound(NoResourceFoundException e) {
+        // favicon.ico 等浏览器自动请求的静态资源，静默返回 404，不打日志
         return Result.error(DefaultBizCode.NOT_FOUND);
     }
 
