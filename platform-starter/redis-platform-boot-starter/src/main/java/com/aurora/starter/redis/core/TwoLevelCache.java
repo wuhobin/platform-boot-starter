@@ -140,7 +140,11 @@ public class TwoLevelCache implements InitializingBean {
             });
             return result == NULL_VALUE ? null : (T) result;
         } catch (CompletionException e) {
-            throw (RuntimeException) e.getCause();
+            Throwable cause = e.getCause();
+            if (cause instanceof RuntimeException re) {
+                throw re;
+            }
+            throw new RuntimeException(cause);
         }
     }
 
