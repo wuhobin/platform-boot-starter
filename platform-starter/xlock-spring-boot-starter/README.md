@@ -1,4 +1,4 @@
-# xlock-platform-boot-starter
+# xlock-spring-boot-starter
 
 Redisson 分布式锁自动装配 Starter，支持注解声明式加锁和编程式加锁两种方式。
 
@@ -18,7 +18,7 @@ Redisson 分布式锁自动装配 Starter，支持注解声明式加锁和编程
 ```xml
 <dependency>
     <groupId>com.aurora</groupId>
-    <artifactId>xlock-platform-boot-starter</artifactId>
+    <artifactId>xlock-spring-boot-starter</artifactId>
 </dependency>
 ```
 

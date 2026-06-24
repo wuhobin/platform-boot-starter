@@ -1,4 +1,4 @@
-# knife4j-platform-boot-starter
+# knife4j-spring-boot-starter
 
 > 基于 [Knife4j](https://doc.xiaominfo.com/) 4.5（OpenAPI 3 + Jakarta）的 Spring Boot 3 Starter，开箱即用。提供默认 `OpenAPI` Bean（标题/描述/版本/Contact/License 可配），原生 `knife4j.*` 与 `springdoc.*` 配置完全透传给官方 starter，不重复封装。
 
@@ -13,7 +13,7 @@
 ```xml
 <dependency>
     <groupId>com.aurora</groupId>
-    <artifactId>knife4j-platform-boot-starter</artifactId>
+    <artifactId>knife4j-spring-boot-starter</artifactId>
     <version>1.0.0-SNAPSHOT</version>
 </dependency>
 ```

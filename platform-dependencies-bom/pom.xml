@@ -40,25 +40,25 @@
 
             <dependency>
                 <groupId>com.aurora</groupId>
-                <artifactId>mybatis-plus-platform-boot-starter</artifactId>
+                <artifactId>mybatis-plus-spring-boot-starter</artifactId>
                 <version>${revision}</version>
             </dependency>
 
             <dependency>
                 <groupId>com.aurora</groupId>
-                <artifactId>knife4j-platform-boot-starter</artifactId>
+                <artifactId>knife4j-spring-boot-starter</artifactId>
                 <version>${revision}</version>
             </dependency>
 
             <dependency>
                 <groupId>com.aurora</groupId>
-                <artifactId>redis-platform-boot-starter</artifactId>
+                <artifactId>redis-spring-boot-starter</artifactId>
                 <version>${revision}</version>
             </dependency>
 
             <dependency>
                 <groupId>com.aurora</groupId>
-                <artifactId>xlock-platform-boot-starter</artifactId>
+                <artifactId>xlock-spring-boot-starter</artifactId>
                 <version>${revision}</version>
             </dependency>
 

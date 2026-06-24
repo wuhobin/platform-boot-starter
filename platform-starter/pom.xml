@@ -19,10 +19,10 @@
     </properties>
 
     <modules>
-        <module>mybatis-plus-platform-boot-starter</module>
-        <module>knife4j-platform-boot-starter</module>
-        <module>redis-platform-boot-starter</module>
-        <module>xlock-platform-boot-starter</module>
+        <module>mybatis-plus-spring-boot-starter</module>
+        <module>knife4j-spring-boot-starter</module>
+        <module>redis-spring-boot-starter</module>
+        <module>xlock-spring-boot-starter</module>
     </modules>
 
     <build>

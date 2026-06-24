@@ -8,8 +8,8 @@
         <version>${revision}</version>
     </parent>
 
-    <artifactId>mybatis-plus-platform-boot-starter</artifactId>
-    <description>Platform starter ---数据访问层 Mybatis-Plus模块</description>
+    <artifactId>mybatis-plus-spring-boot-starter</artifactId>
+    <description>Spring starter ---数据访问层 Mybatis-Plus模块</description>
 
     <dependencies>
 

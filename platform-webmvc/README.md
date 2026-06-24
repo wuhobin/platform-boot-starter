@@ -235,4 +235,4 @@ IP 取值顺序：`X-Forwarded-For` 首段 → `X-Real-IP` → `request.getRemot
 | Spring Boot | 3.5.0 |
 | spring-boot-starter-web | 由 Spring Boot BOM 管控 |
 | platform-common | 1.0.0-SNAPSHOT（传递引入 spring-boot-starter-validation） |
-| knife4j-platform-boot-starter | 1.0.0-SNAPSHOT（传递引入 OpenAPI 3 `@Schema` 注解） |
+| knife4j-spring-boot-starter | 1.0.0-SNAPSHOT（传递引入 OpenAPI 3 `@Schema` 注解） |

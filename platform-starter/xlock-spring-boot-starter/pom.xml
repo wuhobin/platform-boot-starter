@@ -8,8 +8,8 @@
         <version>${revision}</version>
     </parent>
 
-    <artifactId>xlock-platform-boot-starter</artifactId>
-    <description>Platform starter --- Redisson 分布式锁模块</description>
+    <artifactId>xlock-spring-boot-starter</artifactId>
+    <description>Spring starter --- Redisson 分布式锁模块</description>
 
     <dependencies>
 

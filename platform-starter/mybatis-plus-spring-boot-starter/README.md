@@ -1,4 +1,4 @@
-# mybatis-plus-platform-boot-starter
+# mybatis-plus-spring-boot-starter
 
 MyBatis-Plus 自动装配 Starter，提供动态条件构造和分页工具。
 
@@ -17,7 +17,7 @@ MyBatis-Plus 自动装配 Starter，提供动态条件构造和分页工具。
 ```xml
 <dependency>
     <groupId>com.aurora</groupId>
-    <artifactId>mybatis-plus-platform-boot-starter</artifactId>
+    <artifactId>mybatis-plus-spring-boot-starter</artifactId>
 </dependency>
 ```
 

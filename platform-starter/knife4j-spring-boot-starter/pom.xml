@@ -8,8 +8,8 @@
         <version>${revision}</version>
     </parent>
 
-    <artifactId>knife4j-platform-boot-starter</artifactId>
-    <description>Platform starter --- API 文档 Knife4j（OpenAPI3 + Jakarta）模块</description>
+    <artifactId>knife4j-spring-boot-starter</artifactId>
+    <description>Spring starter --- API 文档 Knife4j（OpenAPI3 + Jakarta）模块</description>
 
     <dependencies>
 
