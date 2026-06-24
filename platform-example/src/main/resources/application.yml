@@ -85,7 +85,7 @@ platform:
   # Knife4j 扩展配置
   knife4j:
     title: Platform Example API
-    description: spring-boot-starter 示例工程的接口文档
+    description: platform-boot-starter 示例工程的接口文档
     version: 1.0.0
     contact:
       name: whb
