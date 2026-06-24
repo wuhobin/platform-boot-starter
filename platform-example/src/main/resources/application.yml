@@ -104,6 +104,19 @@ platform:
           false-positive-probability: 0.03
           ttl: 30d
 
+    # 两级缓存配置
+    two-level-cache:
+      enabled: true
+      max-size: 1000
+      default-ttl: 60s
+      instances:
+        - name: userCache
+          max-size: 500
+          default-ttl: 120s
+        - name: productCache
+          max-size: 2000
+          default-ttl: 30s
+
 # Knife4j 官方增强配置
 knife4j:
   setting:
