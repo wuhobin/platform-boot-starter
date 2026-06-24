@@ -132,7 +132,7 @@ public class TwoLevelCache implements InitializingBean {
                 Object loaded = loader.get();
                 if (loaded != null) {
                     ttlMap.put(k, unit.toNanos(ttl));
-                    redisCache.setCacheObject(k, loaded);
+                    redisCache.setCacheObject(k, loaded, ttl, unit);
                     return loaded;
                 }
                 ttlMap.put(k, TimeUnit.SECONDS.toNanos(NULL_VALUE_TTL_SECONDS));

@@ -130,18 +130,13 @@ public class RedisAutoConfig {
             RedissonClient redissonClient,
             TwoLevelCacheProperties properties) {
 
-        // 默认实例
-        TwoLevelCache defaultCache = new TwoLevelCache("default", redisCache, redissonClient,
-            properties.getMaxSize(), properties.getDefaultTtl().getSeconds());
+        // 默认实例（先创建，后续配置中可能有 name="default" 的覆盖定义）
+        TwoLevelCache defaultCache = null;
 
         // 命名实例（含重名检测）
         Map<String, TwoLevelCache> instances = new LinkedHashMap<>();
         Set<String> seen = new HashSet<>();
         for (TwoLevelCacheProperties.InstanceConfig cfg : properties.getInstances()) {
-            if ("default".equals(cfg.getName())) {
-                throw new IllegalStateException(
-                    "'default' is a reserved cache name and cannot be used in instances");
-            }
             if (!seen.add(cfg.getName())) {
                 throw new IllegalStateException(
                     "Duplicate two-level cache name [" + cfg.getName() + "] in configuration");
@@ -149,8 +144,17 @@ public class RedisAutoConfig {
             long maxSize = cfg.getMaxSize() != null ? cfg.getMaxSize() : properties.getMaxSize();
             long ttl = cfg.getDefaultTtl() != null
                 ? cfg.getDefaultTtl().getSeconds() : properties.getDefaultTtl().getSeconds();
-            instances.put(cfg.getName(),
-                new TwoLevelCache(cfg.getName(), redisCache, redissonClient, maxSize, ttl));
+            TwoLevelCache instance = new TwoLevelCache(cfg.getName(), redisCache, redissonClient, maxSize, ttl);
+            if ("default".equals(cfg.getName())) {
+                defaultCache = instance;
+            } else {
+                instances.put(cfg.getName(), instance);
+            }
+        }
+
+        if (defaultCache == null) {
+            defaultCache = new TwoLevelCache("default", redisCache, redissonClient,
+                properties.getMaxSize(), properties.getDefaultTtl().getSeconds());
         }
         instances.put("default", defaultCache);
         return new TwoLevelCacheManager(defaultCache, instances);
