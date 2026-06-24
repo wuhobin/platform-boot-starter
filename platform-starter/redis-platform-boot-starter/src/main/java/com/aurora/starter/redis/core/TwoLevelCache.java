@@ -29,7 +29,6 @@ import java.util.function.Supplier;
 public class TwoLevelCache implements InitializingBean {
 
     static final String TOPIC_PREFIX = "two-level-cache:evict:";
-    static final long DEFAULT_L1_TTL_SECONDS = 300;
     static final long NULL_VALUE_TTL_SECONDS = 60;
     static final Object NULL_VALUE = new Object();
 
@@ -194,5 +193,6 @@ public class TwoLevelCache implements InitializingBean {
     private void putL1(String key, Object value, long ttl, TimeUnit unit) {
         ttlMap.put(key, unit.toNanos(ttl));
         cache.put(key, value);
+        log.debug("L1 cache [{}] put key [{}] with ttl {}s", name, key, unit.toSeconds(ttl));
     }
 }
