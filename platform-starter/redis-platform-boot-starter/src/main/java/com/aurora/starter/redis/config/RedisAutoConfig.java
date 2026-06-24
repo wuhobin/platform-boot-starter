@@ -6,6 +6,8 @@ import com.aurora.starter.redis.core.RedisBloomFilter;
 import com.aurora.starter.redis.core.RedisCache;
 import com.aurora.starter.redis.core.RedisMessageQueue;
 import com.aurora.starter.redis.core.RedisRateLimiter;
+import com.aurora.starter.redis.core.TwoLevelCache;
+import com.aurora.starter.redis.core.TwoLevelCacheManager;
 import org.redisson.api.RBloomFilter;
 import org.redisson.api.RedissonClient;
 import org.redisson.codec.JsonJacksonCodec;
@@ -18,7 +20,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 
+import java.util.LinkedHashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -27,7 +32,7 @@ import java.util.stream.Collectors;
  * @author whb
  */
 @AutoConfiguration
-@EnableConfigurationProperties(BloomFilterProperties.class)
+@EnableConfigurationProperties({BloomFilterProperties.class, TwoLevelCacheProperties.class})
 public class RedisAutoConfig {
 
     private static final String BLOOM_FILTER_KEY_PREFIX = "BLOOM_FILTER";
@@ -104,5 +109,46 @@ public class RedisAutoConfig {
                     cfg.getExpectedInsertions(), cfg.getFalsePositiveProbability());
             }
         ));
+    }
+
+    /**
+     * 两级缓存管理器，统一管理所有 TwoLevelCache 实例.
+     * <p>
+     * 仅当 platform.redis.two-level-cache.enabled=true 时生效。
+     * 必须声明在 redisCache() Bean 之后，确保依赖就绪。
+     *
+     * @param redisCache      Redis 缓存操作
+     * @param redissonClient redisson 客户端
+     * @param properties     两级缓存配置
+     * @return TwoLevelCacheManager
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnProperty(prefix = "platform.redis.two-level-cache", name = "enabled", havingValue = "true")
+    public TwoLevelCacheManager twoLevelCacheManager(
+            RedisCache redisCache,
+            RedissonClient redissonClient,
+            TwoLevelCacheProperties properties) {
+
+        // 默认实例
+        TwoLevelCache defaultCache = new TwoLevelCache("default", redisCache, redissonClient,
+            properties.getMaxSize(), properties.getDefaultTtl().getSeconds());
+
+        // 命名实例（含重名检测）
+        Map<String, TwoLevelCache> instances = new LinkedHashMap<>();
+        Set<String> seen = new HashSet<>();
+        for (TwoLevelCacheProperties.InstanceConfig cfg : properties.getInstances()) {
+            if (!seen.add(cfg.getName())) {
+                throw new IllegalStateException(
+                    "Duplicate two-level cache name [" + cfg.getName() + "] in configuration");
+            }
+            long maxSize = cfg.getMaxSize() != null ? cfg.getMaxSize() : properties.getMaxSize();
+            long ttl = cfg.getDefaultTtl() != null
+                ? cfg.getDefaultTtl().getSeconds() : properties.getDefaultTtl().getSeconds();
+            instances.put(cfg.getName(),
+                new TwoLevelCache(cfg.getName(), redisCache, redissonClient, maxSize, ttl));
+        }
+        instances.put("default", defaultCache);
+        return new TwoLevelCacheManager(defaultCache, instances);
     }
 }
