@@ -151,6 +151,9 @@ public class TwoLevelCache implements InitializingBean {
 
     /**
      * 写穿 L1 + L2 + Pub/Sub 广播.
+     * <p>
+     * 注意：本实例也会收到自己广播的失效消息，导致刚写入的 L1 被删除。
+     * 影响很小——下次 get() 会从 L2 命中回填 L1，仅多一次 L1 miss。
      */
     public void set(String key, Object value, long ttl, TimeUnit unit) {
         putL1(key, value, ttl, unit);
