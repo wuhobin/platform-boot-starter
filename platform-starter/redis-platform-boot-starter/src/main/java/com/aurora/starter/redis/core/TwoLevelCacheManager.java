@@ -1,5 +1,8 @@
 package com.aurora.starter.redis.core;
 
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.InitializingBean;
+
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
@@ -12,7 +15,8 @@ import java.util.Set;
  *
  * @author whb
  */
-public class TwoLevelCacheManager {
+@Slf4j
+public class TwoLevelCacheManager implements InitializingBean {
 
     private final TwoLevelCache defaultCache;
     private final Map<String, TwoLevelCache> caches;
@@ -20,6 +24,11 @@ public class TwoLevelCacheManager {
     public TwoLevelCacheManager(TwoLevelCache defaultCache, Map<String, TwoLevelCache> caches) {
         this.defaultCache = defaultCache;
         this.caches = Collections.unmodifiableMap(caches);
+    }
+
+    @Override
+    public void afterPropertiesSet() {
+        log.info("Two-level cache manager initialized: {}", this);
     }
 
     /**
@@ -50,5 +59,14 @@ public class TwoLevelCacheManager {
      */
     public Set<String> names() {
         return caches.keySet();
+    }
+
+    @Override
+    public String toString() {
+        return "TwoLevelCacheManager{" +
+                "defaultCacheName='" + defaultCache.getName() + '\'' +
+                ", totalInstances=" + caches.size() +
+                ", names=" + caches.keySet() +
+                '}';
     }
 }
