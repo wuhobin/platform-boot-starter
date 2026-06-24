@@ -78,7 +78,11 @@ public class TwoLevelCache implements InitializingBean {
 
     @Override
     public void afterPropertiesSet() {
-        topic.addListener(String.class, (channel, msg) -> cache.invalidate(msg));
+        topic.addListener(String.class, (channel, msg) -> {
+            for (String key : msg.split(",")) {
+                cache.invalidate(key);
+            }
+        });
     }
 
     // === 读 ===
@@ -179,8 +183,9 @@ public class TwoLevelCache implements InitializingBean {
     public void evict(Collection<String> keys) {
         cache.invalidateAll(keys);
         keys.forEach(ttlMap::remove);
-        keys.forEach(redisCache::deleteObject);
-        keys.forEach(topic::publish);
+        redisCache.deleteObject(keys);
+        // 发送单条包含所有 key 的通知，避免 N 次 PUBLISH
+        topic.publish(String.join(",", keys));
     }
 
     // === 本地 ===
@@ -190,7 +195,7 @@ public class TwoLevelCache implements InitializingBean {
      */
     public void clearLocal() {
         cache.invalidateAll();
-        ttlMap.clear();
+        ttlMap.clear();  // 同步清空，防止异步 RemovalListener 尚未执行
     }
 
     private void putL1(String key, Object value, long ttl, TimeUnit unit) {

@@ -130,10 +130,6 @@ public class RedisAutoConfig {
             RedissonClient redissonClient,
             TwoLevelCacheProperties properties) {
 
-        // 默认实例（先创建，后续配置中可能有 name="default" 的覆盖定义）
-        TwoLevelCache defaultCache = null;
-
-        // 命名实例（含重名检测）
         Map<String, TwoLevelCache> instances = new LinkedHashMap<>();
         Set<String> seen = new HashSet<>();
         for (TwoLevelCacheProperties.InstanceConfig cfg : properties.getInstances()) {
@@ -142,16 +138,14 @@ public class RedisAutoConfig {
                     "Duplicate two-level cache name [" + cfg.getName() + "] in configuration");
             }
             long maxSize = cfg.getMaxSize() != null ? cfg.getMaxSize() : properties.getMaxSize();
-            long ttl = cfg.getDefaultTtl() != null
+            long ttlSeconds = cfg.getDefaultTtl() != null
                 ? cfg.getDefaultTtl().getSeconds() : properties.getDefaultTtl().getSeconds();
-            TwoLevelCache instance = new TwoLevelCache(cfg.getName(), redisCache, redissonClient, maxSize, ttl);
-            if ("default".equals(cfg.getName())) {
-                defaultCache = instance;
-            } else {
-                instances.put(cfg.getName(), instance);
-            }
+            instances.put(cfg.getName(),
+                new TwoLevelCache(cfg.getName(), redisCache, redissonClient, maxSize, ttlSeconds));
         }
 
+        // name="default" 可覆盖默认实例参数
+        TwoLevelCache defaultCache = instances.remove("default");
         if (defaultCache == null) {
             defaultCache = new TwoLevelCache("default", redisCache, redissonClient,
                 properties.getMaxSize(), properties.getDefaultTtl().getSeconds());
