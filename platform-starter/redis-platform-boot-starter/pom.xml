@@ -18,6 +18,12 @@
             <artifactId>platform-common</artifactId>
         </dependency>
 
+        <!-- Caffeine 本地缓存 -->
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+        </dependency>
+
         <!-- Spring Data Redis（默认 Lettuce） -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
