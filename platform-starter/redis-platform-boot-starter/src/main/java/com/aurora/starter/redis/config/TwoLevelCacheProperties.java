@@ -5,6 +5,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import org.springframework.validation.annotation.Validated;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,6 +19,7 @@ import java.util.List;
  * @author whb
  */
 @Data
+@Validated
 @ConfigurationProperties(prefix = "platform.redis.two-level-cache")
 public class TwoLevelCacheProperties {
 
