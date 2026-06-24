@@ -138,6 +138,10 @@ public class RedisAutoConfig {
         Map<String, TwoLevelCache> instances = new LinkedHashMap<>();
         Set<String> seen = new HashSet<>();
         for (TwoLevelCacheProperties.InstanceConfig cfg : properties.getInstances()) {
+            if ("default".equals(cfg.getName())) {
+                throw new IllegalStateException(
+                    "'default' is a reserved cache name and cannot be used in instances");
+            }
             if (!seen.add(cfg.getName())) {
                 throw new IllegalStateException(
                     "Duplicate two-level cache name [" + cfg.getName() + "] in configuration");
