@@ -83,6 +83,7 @@ public class UserController {
 | `platform.security.enabled` | boolean | true | 是否启用 |
 | `platform.security.token-name` | String | Authorization | Token 名称（前端 Header Key） |
 | `platform.security.timeout` | int | 604800 | Token 有效期（秒），默认 7 天 |
+| `platform.security.is-log` | boolean | false | 是否打印 Sa-Token 框架日志 |
 | `platform.security.exclude-paths` | List\<String\> | `/api/v1/auth/login` 等 | 放行路径 |
 
 ## SecurityUtils API

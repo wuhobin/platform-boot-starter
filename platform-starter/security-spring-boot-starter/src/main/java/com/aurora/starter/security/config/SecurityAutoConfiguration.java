@@ -68,8 +68,10 @@ public class SecurityAutoConfiguration implements WebMvcConfigurer {
         config.setIsShare(true);
         // Token 生成风格：uuid
         config.setTokenStyle("uuid");
-        // 不向控制台打印框架内部日志
-        config.setIsLog(false);
+        // 是否向控制台打印框架内部日志
+        config.setIsLog(securityProperties.isLog());
+        // 是否打印每次请求的 Token 信息
+        config.setIsPrint(false);
         // 不从 Cookie 中读取 Token
         config.setIsReadCookie(false);
         // 从 Header 中读取 Token（前后端分离）

@@ -31,6 +31,11 @@ public class SecurityProperties {
     private int timeout = 604800;
 
     /**
+     * 是否打印 Sa-Token 框架内部日志
+     */
+    private boolean isLog = false;
+
+    /**
      * SaInterceptor 放行路径
      */
     private List<String> excludePaths = List.of(
