@@ -48,14 +48,20 @@ public class SecurityProperties {
      * </p>
      */
     private List<String> excludePaths = List.of(
+            // Knife4j / Swagger UI
             "/doc.html",
             "/webjars/**",
             "/swagger-resources/**",
             "/swagger-ui/**",
             "/swagger-ui.html",
+            // OpenAPI 文档
             "/v3/api-docs/**",
             "/v2/api-docs/**",
+            // Spring Boot Actuator
             "/actuator/**",
+            // 静态资源
+            "/favicon.ico",
+            // Spring Boot 错误页（避免 401 重定向循环）
             "/error"
     );
 }
