@@ -27,14 +27,16 @@
 ```yaml
 platform:
   security:
-    token-name: satoken       # Token 名称，多端区分时设置不同值
-    timeout: 604800           # Token 有效期（秒），默认 7 天
-    exclude-paths:            # 放行路径
+    token-name: Authorization   # Token 名称（前端 Header Key），默认 Authorization
+    timeout: 2592000            # Token 有效期（秒），默认 30 天
+    exclude-paths:              # 放行路径
       - /api/v1/auth/login
       - /api/v1/auth/register
       - /swagger-resources/**
       - /v3/api-docs/**
 ```
+
+**默认 Token 风格：** Bearer Token（前端请求 Header：`Authorization: Bearer <token>`），前后端分离模式，仅从 Header 读取 Token。
 
 ### 3. 实现权限提供者
 
@@ -79,8 +81,8 @@ public class UserController {
 | 属性 | 类型 | 默认值 | 说明 |
 |---|---|---|---|
 | `platform.security.enabled` | boolean | true | 是否启用 |
-| `platform.security.token-name` | String | satoken | Token 名称 |
-| `platform.security.timeout` | int | 604800 | Token 有效期（秒） |
+| `platform.security.token-name` | String | Authorization | Token 名称（前端 Header Key） |
+| `platform.security.timeout` | int | 2592000 | Token 有效期（秒），默认 30 天 |
 | `platform.security.exclude-paths` | List\<String\> | `/api/v1/auth/login` 等 | 放行路径 |
 
 ## SecurityUtils API

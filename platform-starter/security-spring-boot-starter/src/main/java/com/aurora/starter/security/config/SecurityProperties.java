@@ -21,14 +21,14 @@ public class SecurityProperties {
     private boolean enabled = true;
 
     /**
-     * Token 名称（区分多端时设置不同值）
+     * Token 名称（前端请求 Header 中携带的 Key，默认 Authorization）
      */
-    private String tokenName = "satoken";
+    private String tokenName = "Authorization";
 
     /**
-     * Token 有效期（秒），默认 7 天
+     * Token 有效期（秒），默认 30 天
      */
-    private int timeout = 604800;
+    private int timeout = 2592000;
 
     /**
      * SaInterceptor 放行路径
