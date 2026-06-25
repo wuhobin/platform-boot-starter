@@ -117,7 +117,16 @@ public class SecurityAutoConfiguration implements WebMvcConfigurer {
                     .match("/**")
                     .notMatch(excludePathArray)
                     .check(r -> StpUtil.checkLogin());
-        })).addPathPatterns("/**");
+        }))
+        // 同时在 Spring MVC 层面排除，避免不必要地进入 SaInterceptor
+        .excludePathPatterns("/doc.html", "/doc.html/**",
+                "/webjars/**",
+                "/swagger-resources/**", "/swagger-ui/**", "/swagger-ui.html",
+                "/v3/api-docs/**", "/v2/api-docs/**",
+                "/actuator/**", "/actuator",
+                "/favicon.ico", "/favicon.ico/**",
+                "/error")
+        .addPathPatterns("/**");
     }
 
     /**
