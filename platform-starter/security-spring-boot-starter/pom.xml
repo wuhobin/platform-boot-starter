@@ -34,12 +34,6 @@
             <artifactId>sa-token-redisson</artifactId>
         </dependency>
 
-        <!-- Redisson 客户端运行时（由消费方提供 RedissonClient Bean，例如引入 redis-spring-boot-starter） -->
-        <dependency>
-            <groupId>org.redisson</groupId>
-            <artifactId>redisson</artifactId>
-        </dependency>
-
         <!-- Redis 连接池 (Redisson 需要) -->
         <dependency>
             <groupId>org.apache.commons</groupId>
