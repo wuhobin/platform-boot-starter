@@ -34,12 +34,12 @@ import java.util.List;
 public class SecurityAutoConfiguration implements WebMvcConfigurer {
 
     private final SecurityProperties securityProperties;
-    private final PermissionProvider permissionProvider;
+    private final ObjectProvider<PermissionProvider> permissionProvider;
 
     public SecurityAutoConfiguration(SecurityProperties securityProperties,
                                      ObjectProvider<PermissionProvider> permissionProvider) {
         this.securityProperties = securityProperties;
-        this.permissionProvider = permissionProvider.getIfAvailable();
+        this.permissionProvider = permissionProvider;
     }
 
     /**
@@ -102,16 +102,18 @@ public class SecurityAutoConfiguration implements WebMvcConfigurer {
         return new StpInterface() {
             @Override
             public List<String> getPermissionList(Object loginId, String loginType) {
-                if (permissionProvider != null) {
-                    return permissionProvider.getPermissionList(loginId, loginType);
+                PermissionProvider provider = permissionProvider.getIfAvailable();
+                if (provider != null) {
+                    return provider.getPermissionList(loginId, loginType);
                 }
                 return List.of();
             }
 
             @Override
             public List<String> getRoleList(Object loginId, String loginType) {
-                if (permissionProvider != null) {
-                    return permissionProvider.getRoleList(loginId, loginType);
+                PermissionProvider provider = permissionProvider.getIfAvailable();
+                if (provider != null) {
+                    return provider.getRoleList(loginId, loginType);
                 }
                 return List.of();
             }
