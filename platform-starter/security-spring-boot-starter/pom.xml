@@ -34,10 +34,10 @@
             <artifactId>sa-token-redisson</artifactId>
         </dependency>
 
-        <!-- Redisson (已由 redis-spring-boot-starter 或直接依赖提供 RedissonClient Bean) -->
+        <!-- Redisson 客户端运行时（由消费方提供 RedissonClient Bean，例如引入 redis-spring-boot-starter） -->
         <dependency>
             <groupId>org.redisson</groupId>
-            <artifactId>redisson-spring-boot-starter</artifactId>
+            <artifactId>redisson</artifactId>
         </dependency>
 
         <!-- Redis 连接池 (Redisson 需要) -->
