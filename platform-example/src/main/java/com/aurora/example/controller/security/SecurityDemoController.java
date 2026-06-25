@@ -2,8 +2,10 @@ package com.aurora.example.controller.security;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.dev33.satoken.annotation.SaCheckRole;
+import cn.dev33.satoken.annotation.SaIgnore;
 import com.aurora.starter.security.context.SecurityUtils;
 import com.aurora.starter.webmvc.domain.response.Result;
+import com.github.xiaoymin.knife4j.annotations.Ignore;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,6 +34,12 @@ public class SecurityDemoController {
     public Result<?> logout() {
         SecurityUtils.logout();
         return Result.success("已登出");
+    }
+
+    @SaIgnore
+    @GetMapping("/testNotLogin")
+    public Result<?> testNotLogin() {
+        return Result.success("当前未登录，路径未放行，可以请求成功");
     }
 
     /**
