@@ -1,4 +1,4 @@
-package com.aurora.example.controller;
+package com.aurora.example.controller.redis;
 
 import com.aurora.starter.redis.core.TwoLevelCache;
 import com.aurora.starter.redis.core.manager.TwoLevelCacheManager;
