@@ -11,8 +11,8 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>security-spring-boot-starter</artifactId>
-    <name>Aurora Security Spring Boot Starter</name>
+    <artifactId>sa-token-spring-boot-starter</artifactId>
+    <name>Aurora Sa-Token Spring Boot Starter</name>
     <description>基于 Sa-Token (Redis 模式) 的轻量级认证鉴权 Starter</description>
 
     <dependencies>

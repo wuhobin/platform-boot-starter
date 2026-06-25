@@ -51,10 +51,10 @@
             <version>1.0.0-SNAPSHOT</version>
         </dependency>
 
-        <!-- 引入 security starter -->
+        <!-- 引入 sa-token starter -->
         <dependency>
             <groupId>com.aurora</groupId>
-            <artifactId>security-spring-boot-starter</artifactId>
+            <artifactId>sa-token-spring-boot-starter</artifactId>
             <version>1.0.0-SNAPSHOT</version>
         </dependency>
 
