@@ -46,6 +46,7 @@ public class SecurityProperties {
      */
     private List<String> excludePaths = List.of(
             "/swagger-resources/**",
-            "/v3/api-docs/**"
+            "/v3/api-docs/**",
+            "/doc.html/*"
     );
 }
