@@ -23,6 +23,7 @@
         <module>knife4j-spring-boot-starter</module>
         <module>redis-spring-boot-starter</module>
         <module>xlock-spring-boot-starter</module>
+        <module>security-spring-boot-starter</module>
     </modules>
 
     <build>
