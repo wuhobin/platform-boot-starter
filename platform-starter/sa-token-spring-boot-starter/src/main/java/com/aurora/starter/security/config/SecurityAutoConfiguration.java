@@ -7,6 +7,7 @@ import cn.dev33.satoken.interceptor.SaInterceptor;
 import cn.dev33.satoken.router.SaRouter;
 import cn.dev33.satoken.stp.StpInterface;
 import cn.dev33.satoken.stp.StpUtil;
+import com.aurora.starter.security.log.SaLogForSlf4j;
 import com.aurora.starter.security.spi.PermissionProvider;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.ObjectProvider;
@@ -100,6 +101,11 @@ public class SecurityAutoConfiguration implements WebMvcConfigurer {
     @ConditionalOnMissingBean(StpInterface.class)
     public StpInterface stpInterface() {
         return new PermissionProviderBackedStpInterface(permissionProvider);
+    }
+
+    @Bean
+    public SaLogForSlf4j saLogForSlf4j() {
+        return new SaLogForSlf4j();
     }
 
     /**
