@@ -18,6 +18,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import jakarta.annotation.PostConstruct;
+
 import java.util.List;
 
 /**
@@ -34,51 +36,39 @@ public class SecurityAutoConfiguration implements WebMvcConfigurer {
 
     private final SecurityProperties securityProperties;
     private final PermissionProvider permissionProvider;
+    private final SaTokenConfig saTokenConfig;
 
     public SecurityAutoConfiguration(SecurityProperties securityProperties,
-                                     ObjectProvider<PermissionProvider> permissionProvider) {
+                                     ObjectProvider<PermissionProvider> permissionProvider,
+                                     SaTokenConfig saTokenConfig) {
         this.securityProperties = securityProperties;
-        // 如果业务方没有实现 PermissionProvider，则为 null，StpInterface 将返回空列表
         this.permissionProvider = permissionProvider.getIfAvailable();
+        this.saTokenConfig = saTokenConfig;
     }
 
     /**
-     * 配置 Sa-Token 参数
+     * 在 SaTokenConfig bean 初始化后，用 platform.security.* 覆盖默认配置
      * <p>
-     * 默认配置遵循 RESTful Bearer Token 规范：
-     * Header: Authorization: Bearer &lt;token&gt;
-     * 前后端分离，仅从 Header 读取，不从 Cookie/Body 读取。
+     * Sa-Token 自身的 SaBeanRegister 已注册了 SaTokenConfig bean（从 sa-token.* 配置读取），
+     * 这里在其基础上追加/覆盖默认值，遵循 RESTful Bearer Token 规范。
+     * 如果业务方在 yml 中显式配置了 sa-token.* 属性，SaBeanRegister 已将其绑定到 SaTokenConfig，
+     * 此处的设置会被 yml 配置覆盖（Spring 属性优先级更高）。
      * </p>
      */
-    @Bean
-    @ConditionalOnMissingBean
-    public SaTokenConfig saTokenConfig() {
-        SaTokenConfig config = new SaTokenConfig();
-        // Token 标识名（前端请求 Header 中需要携带的 Key）
-        config.setTokenName(securityProperties.getTokenName());
-        // Token 前缀（遵循 Bearer Token 标准规范）
-        config.setTokenPrefix("Bearer");
-        // Token 有效期（秒），默认 7 天
-        config.setTimeout(securityProperties.getTimeout());
-        // 临时有效期（-1 代表不开启，不会半途失效）
-        config.setActivityTimeout(-1);
-        // 允许同一账号多端同时登录
-        config.setIsConcurrent(true);
-        // 多人登录同一账号时共享同一个 Token
-        config.setIsShare(true);
-        // Token 生成风格：uuid
-        config.setTokenStyle("uuid");
-        // 是否向控制台打印框架内部日志
-        config.setIsLog(securityProperties.isLog());
-        // 是否打印每次请求的 Token 信息
-        config.setIsPrint(false);
-        // 不从 Cookie 中读取 Token
-        config.setIsReadCookie(false);
-        // 从 Header 中读取 Token（前后端分离）
-        config.setIsReadHeader(true);
-        // 不从 Body 请求体中读取 Token
-        config.setIsReadBody(false);
-        return config;
+    @PostConstruct
+    public void customizeSaTokenConfig() {
+        saTokenConfig.setTokenName(securityProperties.getTokenName());
+        saTokenConfig.setTokenPrefix("Bearer");
+        saTokenConfig.setTimeout(securityProperties.getTimeout());
+        saTokenConfig.setActivityTimeout(-1);
+        saTokenConfig.setIsConcurrent(true);
+        saTokenConfig.setIsShare(true);
+        saTokenConfig.setTokenStyle("uuid");
+        saTokenConfig.setIsLog(securityProperties.isLog());
+        saTokenConfig.setIsPrint(false);
+        saTokenConfig.setIsReadCookie(false);
+        saTokenConfig.setIsReadHeader(true);
+        saTokenConfig.setIsReadBody(false);
     }
 
     /**
