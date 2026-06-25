@@ -15,10 +15,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-
-import jakarta.annotation.PostConstruct;
 
 import java.util.List;
 
@@ -36,39 +35,38 @@ public class SecurityAutoConfiguration implements WebMvcConfigurer {
 
     private final SecurityProperties securityProperties;
     private final PermissionProvider permissionProvider;
-    private final SaTokenConfig saTokenConfig;
 
     public SecurityAutoConfiguration(SecurityProperties securityProperties,
-                                     ObjectProvider<PermissionProvider> permissionProvider,
-                                     SaTokenConfig saTokenConfig) {
+                                     ObjectProvider<PermissionProvider> permissionProvider) {
         this.securityProperties = securityProperties;
         this.permissionProvider = permissionProvider.getIfAvailable();
-        this.saTokenConfig = saTokenConfig;
     }
 
     /**
-     * 在 SaTokenConfig bean 初始化后，用 platform.security.* 覆盖默认配置
+     * 配置 Sa-Token 参数，使用 @Primary 覆盖 Sa-Token 自身的 SaTokenConfig bean
      * <p>
-     * Sa-Token 自身的 SaBeanRegister 已注册了 SaTokenConfig bean（从 sa-token.* 配置读取），
-     * 这里在其基础上追加/覆盖默认值，遵循 RESTful Bearer Token 规范。
-     * 如果业务方在 yml 中显式配置了 sa-token.* 属性，SaBeanRegister 已将其绑定到 SaTokenConfig，
-     * 此处的设置会被 yml 配置覆盖（Spring 属性优先级更高）。
+     * 默认配置遵循 RESTful Bearer Token 规范：
+     * Header: Authorization: Bearer &lt;token&gt;
+     * 前后端分离，仅从 Header 读取，不从 Cookie/Body 读取。
      * </p>
      */
-    @PostConstruct
-    public void customizeSaTokenConfig() {
-        saTokenConfig.setTokenName(securityProperties.getTokenName());
-        saTokenConfig.setTokenPrefix("Bearer");
-        saTokenConfig.setTimeout(securityProperties.getTimeout());
-        saTokenConfig.setActivityTimeout(-1);
-        saTokenConfig.setIsConcurrent(true);
-        saTokenConfig.setIsShare(true);
-        saTokenConfig.setTokenStyle("uuid");
-        saTokenConfig.setIsLog(securityProperties.isLog());
-        saTokenConfig.setIsPrint(false);
-        saTokenConfig.setIsReadCookie(false);
-        saTokenConfig.setIsReadHeader(true);
-        saTokenConfig.setIsReadBody(false);
+    @Primary
+    @Bean
+    public SaTokenConfig saTokenConfig() {
+        SaTokenConfig config = new SaTokenConfig();
+        config.setTokenName(securityProperties.getTokenName());
+        config.setTokenPrefix("Bearer");
+        config.setTimeout(securityProperties.getTimeout());
+        config.setActivityTimeout(-1);
+        config.setIsConcurrent(true);
+        config.setIsShare(true);
+        config.setTokenStyle("uuid");
+        config.setIsLog(securityProperties.isLog());
+        config.setIsPrint(false);
+        config.setIsReadCookie(false);
+        config.setIsReadHeader(true);
+        config.setIsReadBody(false);
+        return config;
     }
 
     /**
