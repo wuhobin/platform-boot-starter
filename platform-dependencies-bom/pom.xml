@@ -164,6 +164,13 @@
                 <version>${sa-token.version}</version>
             </dependency>
 
+            <!-- Sa-Token 核心（仅异常类） -->
+            <dependency>
+                <groupId>cn.dev33</groupId>
+                <artifactId>sa-token-core</artifactId>
+                <version>${sa-token.version}</version>
+            </dependency>
+
             <!-- Sa-Token Redisson 集成 -->
             <dependency>
                 <groupId>cn.dev33</groupId>
