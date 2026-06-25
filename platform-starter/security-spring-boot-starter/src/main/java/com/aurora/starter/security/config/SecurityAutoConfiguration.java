@@ -117,6 +117,12 @@ public class SecurityAutoConfiguration implements WebMvcConfigurer {
                 }
                 return List.of();
             }
+
+            @Override
+            public String toString() {
+                PermissionProvider provider = permissionProvider.getIfAvailable();
+                return provider != null ? provider.getClass().getSimpleName() : "PermissionProvider (not provided)";
+            }
         };
     }
 
