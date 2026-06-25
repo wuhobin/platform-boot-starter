@@ -41,12 +41,21 @@ public class SecurityProperties {
     private boolean isLog = false;
 
     /**
-     * SaInterceptor 放行路径（仅包含 starter 自身保证已知的路径，
-     * 业务方应根据实际接口扩展该列表 —— 业务登录/注册等路径由消费方提供）
+     * SaInterceptor 放行路径
+     * <p>
+     * 默认包含 Knife4j/swagger 文档、Actuator、Spring Boot 错误页等开放访问的路径。
+     * 业务方应根据实际接口扩展该列表 —— 业务登录/注册等路径由消费方提供。
+     * </p>
      */
     private List<String> excludePaths = List.of(
+            "/doc.html",
+            "/webjars/**",
             "/swagger-resources/**",
+            "/swagger-ui/**",
+            "/swagger-ui.html",
             "/v3/api-docs/**",
-            "/doc.html/*"
+            "/v2/api-docs/**",
+            "/actuator/**",
+            "/error"
     );
 }

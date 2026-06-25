@@ -29,11 +29,16 @@ platform:
   security:
     token-name: Authorization   # Token 名称（前端 Header Key），默认 Authorization
     timeout: 604800             # Token 有效期（秒），默认 7 天
-    exclude-paths:              # 放行路径
-      - /api/v1/auth/login
-      - /api/v1/auth/register
+    exclude-paths:              # 放行路径（业务登录/注册等接口需业务方自行追加）
+      - /doc.html
+      - /webjars/**
       - /swagger-resources/**
+      - /swagger-ui/**
+      - /swagger-ui.html
       - /v3/api-docs/**
+      - /v2/api-docs/**
+      - /actuator/**
+      - /error
 ```
 
 **默认 Token 风格：** Bearer Token（前端请求 Header：`Authorization: Bearer <token>`），前后端分离模式，仅从 Header 读取 Token。
@@ -85,7 +90,7 @@ public class UserController {
 | `platform.security.timeout` | int | 604800 | Token 有效期（秒），默认 7 天 |
 | `platform.security.token-style` | String | uuid | Token 生成风格（uuid/simple-uuid/random-32/random-64/random-128/tik） |
 | `platform.security.is-log` | boolean | false | 是否打印 Sa-Token 框架日志 |
-| `platform.security.exclude-paths` | List\<String\> | `/api/v1/auth/login` 等 | 放行路径 |
+| `platform.security.exclude-paths` | List\<String\> | swagger/actuator/error | 放行路径，详见下表 |
 
 ## SecurityUtils API
 
