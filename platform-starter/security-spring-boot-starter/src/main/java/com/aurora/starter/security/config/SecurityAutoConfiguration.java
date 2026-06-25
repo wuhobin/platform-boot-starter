@@ -35,16 +35,11 @@ public class SecurityAutoConfiguration implements WebMvcConfigurer {
 
     private final SecurityProperties securityProperties;
     private final ObjectProvider<PermissionProvider> permissionProvider;
-    /**
-     * excludePaths 缓存为数组，避免每次请求都重新分配。
-     */
-    private final String[] excludePathArray;
 
     public SecurityAutoConfiguration(SecurityProperties securityProperties,
                                      ObjectProvider<PermissionProvider> permissionProvider) {
         this.securityProperties = securityProperties;
         this.permissionProvider = permissionProvider;
-        this.excludePathArray = securityProperties.getExcludePaths().toArray(new String[0]);
     }
 
     /**
@@ -115,7 +110,7 @@ public class SecurityAutoConfiguration implements WebMvcConfigurer {
         registry.addInterceptor(new SaInterceptor(handle -> {
             SaRouter
                     .match("/**")
-                    .notMatch(excludePathArray)
+                    .notMatch(securityProperties.getExcludePaths().toArray(new String[0]))
                     .check(r -> StpUtil.checkLogin());
         })).addPathPatterns("/**");
     }
