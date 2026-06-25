@@ -72,6 +72,22 @@ springdoc:
 
 # 各 starter 统一配置前缀
 platform:
+  # ==================== Aurora Security ====================
+  security:
+    token-name: example-token
+    timeout: 604800
+    exclude-paths:
+      - /api/v1/auth/login
+      - /api/v1/auth/logout
+      - /api/v1/auth/register
+      - /demo/**
+      - /test/**
+      - /users/**
+      - /redis-demo/**
+      - /swagger-resources/**
+      - /v3/api-docs/**
+      - /doc.html
+
   # MyBatis-Plus 扩展配置
   mybatis-plus:
     disable-full-scan-table:
