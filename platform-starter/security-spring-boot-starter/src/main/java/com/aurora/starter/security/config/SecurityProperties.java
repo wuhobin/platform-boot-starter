@@ -31,6 +31,11 @@ public class SecurityProperties {
     private int timeout = 604800;
 
     /**
+     * Token 生成风格（uuid / simple-uuid / random-32 / random-64 / random-128 / tik）
+     */
+    private String tokenStyle = "uuid";
+
+    /**
      * 是否打印 Sa-Token 框架内部日志
      */
     private boolean isLog = true;

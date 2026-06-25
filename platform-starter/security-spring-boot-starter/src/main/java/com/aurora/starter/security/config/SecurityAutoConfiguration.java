@@ -54,17 +54,29 @@ public class SecurityAutoConfiguration implements WebMvcConfigurer {
     @Bean
     public SaTokenConfig saTokenConfig() {
         SaTokenConfig config = new SaTokenConfig();
+        // Token 标识名（前端请求 Header 中需要携带的 Key）
         config.setTokenName(securityProperties.getTokenName());
+        // Token 前缀（遵循 Bearer Token 标准规范，注意后面有一个空格）
         config.setTokenPrefix("Bearer");
+        // Token 有效期（单位：秒），默认 7 天
         config.setTimeout(securityProperties.getTimeout());
+        // 临时有效期（指定时间内无操作则半途失效，-1 代表不开启）
         config.setActivityTimeout(-1);
+        // 是否允许同一账号多端同时登录
         config.setIsConcurrent(true);
+        // 在多人登录同一账号时，是否共享同一个 Token
         config.setIsShare(true);
-        config.setTokenStyle("uuid");
+        // Token 生成风格，默认 uuid 格式
+        config.setTokenStyle(securityProperties.getTokenStyle());
+        // 是否向控制台打印框架内部日志
         config.setIsLog(securityProperties.isLog());
+        // 是否打印每次请求的 Token 信息
         config.setIsPrint(false);
+        // 是否从 Cookie 中尝试读取 Token
         config.setIsReadCookie(false);
+        // 是否从 Header 中读取 Token（前后端分离项目必须开启）
         config.setIsReadHeader(true);
+        // 是否从 Body 请求体中读取 Token
         config.setIsReadBody(false);
         return config;
     }
