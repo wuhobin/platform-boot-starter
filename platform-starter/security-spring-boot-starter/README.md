@@ -28,7 +28,7 @@
 platform:
   security:
     token-name: Authorization   # Token 名称（前端 Header Key），默认 Authorization
-    timeout: 2592000            # Token 有效期（秒），默认 30 天
+    timeout: 604800             # Token 有效期（秒），默认 7 天
     exclude-paths:              # 放行路径
       - /api/v1/auth/login
       - /api/v1/auth/register
@@ -82,7 +82,7 @@ public class UserController {
 |---|---|---|---|
 | `platform.security.enabled` | boolean | true | 是否启用 |
 | `platform.security.token-name` | String | Authorization | Token 名称（前端 Header Key） |
-| `platform.security.timeout` | int | 2592000 | Token 有效期（秒），默认 30 天 |
+| `platform.security.timeout` | int | 604800 | Token 有效期（秒），默认 7 天 |
 | `platform.security.exclude-paths` | List\<String\> | `/api/v1/auth/login` 等 | 放行路径 |
 
 ## SecurityUtils API

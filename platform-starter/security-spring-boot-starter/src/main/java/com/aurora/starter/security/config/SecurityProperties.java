@@ -26,9 +26,9 @@ public class SecurityProperties {
     private String tokenName = "Authorization";
 
     /**
-     * Token 有效期（秒），默认 30 天
+     * Token 有效期（秒），默认 7 天
      */
-    private int timeout = 2592000;
+    private int timeout = 604800;
 
     /**
      * SaInterceptor 放行路径

@@ -58,7 +58,7 @@ public class SecurityAutoConfiguration implements WebMvcConfigurer {
         config.setTokenName(securityProperties.getTokenName());
         // Token 前缀（遵循 Bearer Token 标准规范）
         config.setTokenPrefix("Bearer");
-        // Token 有效期（秒），默认 30 天
+        // Token 有效期（秒），默认 7 天
         config.setTimeout(securityProperties.getTimeout());
         // 临时有效期（-1 代表不开启，不会半途失效）
         config.setActivityTimeout(-1);
