@@ -76,7 +76,7 @@ platform:
   security:
     token-name: Authorization
     timeout: 604800
-    is-log: true
+    log: true
     exclude-paths:
       - /api/v1/auth/login
       - /api/v1/auth/logout
