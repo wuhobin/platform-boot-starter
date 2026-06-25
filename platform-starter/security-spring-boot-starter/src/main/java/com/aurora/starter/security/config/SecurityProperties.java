@@ -4,6 +4,7 @@ import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Sa-Token 安全配置属性
@@ -14,6 +15,27 @@ import java.util.List;
 @Data
 @ConfigurationProperties(prefix = "platform.security")
 public class SecurityProperties {
+
+    /**
+     * starter 自身保证已知的放行路径（默认开放），最终放行列表 = 默认列表 + 用户自定义列表（去重）
+     */
+    private static final List<String> DEFAULT_EXCLUDE_PATHS = List.of(
+            // Knife4j / Swagger UI
+            "/doc.html",
+            "/webjars/**",
+            "/swagger-resources/**",
+            "/swagger-ui/**",
+            "/swagger-ui.html",
+            // OpenAPI 文档
+            "/v3/api-docs/**",
+            "/v2/api-docs/**",
+            // Spring Boot Actuator
+            "/actuator/**",
+            // 静态资源
+            "/favicon.ico",
+            // Spring Boot 错误页（避免 401 重定向循环）
+            "/error"
+    );
 
     /**
      * 是否启用安全自动配置
@@ -41,23 +63,31 @@ public class SecurityProperties {
     private boolean isLog = false;
 
     /**
-     * SaInterceptor 放行路径
+     * 业务方自定义的放行路径（与 starter 默认放行路径合并去重）
      * <p>
-     * 默认包含 Knife4j/swagger 文档、Actuator、Spring Boot 错误页等开放访问的路径。
-     * 业务方应根据实际接口扩展该列表 —— 业务登录/注册等路径由消费方提供。
+     * 最终放行列表 = starter 默认列表 + 本字段列表（去重）。
+     * 业务登录/注册等接口直接追加到 yml 即可，无需重复写 swagger/actuator 等默认路径。
      * </p>
      */
-    private List<String> excludePaths = List.of(
-            "/doc.html",
-            "/webjars/**",
-            "/swagger-resources/**",
-            "/swagger-ui/**",
-            "/swagger-ui.html",
-            "/v3/api-docs/**",
-            "/v2/api-docs/**",
-            "/actuator/**",
-            "/favicon.ico",
-            "/favicon.ico/**",
-            "/error"
-    );
+    private List<String> excludePaths = List.of();
+
+    /**
+     * 自定义 setter：将用户配置的 excludePaths 与默认列表合并去重
+     */
+    public void setExcludePaths(List<String> userPaths) {
+        if (userPaths == null || userPaths.isEmpty()) {
+            this.excludePaths = DEFAULT_EXCLUDE_PATHS;
+        } else {
+            this.excludePaths = Stream.concat(DEFAULT_EXCLUDE_PATHS.stream(), userPaths.stream())
+                    .distinct()
+                    .toList();
+        }
+    }
+
+    /**
+     * 暴露默认列表给其他模块使用（例如调试日志）
+     */
+    public static List<String> getDefaultExcludePaths() {
+        return DEFAULT_EXCLUDE_PATHS;
+    }
 }

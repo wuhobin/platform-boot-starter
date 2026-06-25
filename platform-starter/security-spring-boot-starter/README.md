@@ -29,17 +29,9 @@ platform:
   security:
     token-name: Authorization   # Token 名称（前端 Header Key），默认 Authorization
     timeout: 604800             # Token 有效期（秒），默认 7 天
-    exclude-paths:              # 放行路径（业务登录/注册等接口需业务方自行追加）
-      - /doc.html
-      - /webjars/**
-      - /swagger-resources/**
-      - /swagger-ui/**
-      - /swagger-ui.html
-      - /v3/api-docs/**
-      - /v2/api-docs/**
-      - /actuator/**
-      - /favicon.ico
-      - /error
+    exclude-paths:              # 业务方自定义放行路径（与 starter 默认开放路径自动合并去重）
+      - /api/v1/auth/login      # 业务登录接口
+      - /api/v1/auth/register   # 业务注册接口
 ```
 
 **默认 Token 风格：** Bearer Token（前端请求 Header：`Authorization: Bearer <token>`），前后端分离模式，仅从 Header 读取 Token。
