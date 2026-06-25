@@ -1,15 +1,16 @@
 package com.aurora.starter.redis.core;
 
+import com.aurora.starter.common.utils.RedisKeyUtil;
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RTopic;
 import org.redisson.api.RedissonClient;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 
 /**
@@ -17,14 +18,20 @@ import java.util.function.Consumer;
  * <p>
  * 基于 Redisson RTopic，提供 push 模式的实时消息收发。
  * 每个 topic 可注册多个 listener，返回 Subscription 可控取消。
+ * <p>
+ * 对外暴露的 topic 是逻辑名，内部传给 Redisson 的 RTopic 会按
+ * {@link #TOPIC_KEY_PREFIX} 统一加前缀，避免与业务自身 key 冲突。
  *
  * @author whb
  */
 @Slf4j
 public class RedisPubSub {
 
+    /** 内部 topic 前缀，与 RedisKeyUtil.DELIMITER 拼接形成 "pubsub:topic:{name}". */
+    public static final String TOPIC_KEY_PREFIX = "pubsub:topic";
+
     private final RedissonClient redissonClient;
-    private final Map<String, List<Integer>> listenerIds = new ConcurrentHashMap<>();
+    private final Map<String, TopicEntry> topics = new ConcurrentHashMap<>();
 
     public RedisPubSub(RedissonClient redissonClient) {
         this.redissonClient = redissonClient;
@@ -38,8 +45,18 @@ public class RedisPubSub {
      * @return 收到消息的订阅者数量
      */
     public long publish(String topic, Object message) {
-        RTopic rtopic = redissonClient.getTopic(topic);
-        return rtopic.publish(message);
+        return getOrCreate(topic).topic.publish(message);
+    }
+
+    private TopicEntry getOrCreate(String topic) {
+        return topics.computeIfAbsent(topic, k -> new TopicEntry(redissonClient.getTopic(toRedissonKey(k))));
+    }
+
+    /**
+     * 把对外的逻辑 topic 名加上内部前缀，生成传给 Redisson 的真实 key.
+     */
+    private static String toRedissonKey(String topic) {
+        return RedisKeyUtil.generate(TOPIC_KEY_PREFIX, topic);
     }
 
     /**
@@ -52,17 +69,17 @@ public class RedisPubSub {
      * @return Subscription，可调用 unsubscribe() 取消
      */
     public <T> Subscription subscribe(String topic, Class<T> messageType, Consumer<T> listener) {
-        RTopic rtopic = redissonClient.getTopic(topic);
-        int listenerId = rtopic.addListener(messageType, (channel, msg) -> {
+        TopicEntry entry = getOrCreate(topic);
+        int listenerId = entry.topic.addListener(messageType, (channel, msg) -> {
             try {
                 listener.accept(msg);
             } catch (Exception e) {
                 log.error("Pub/Sub listener error on topic [{}]", topic, e);
             }
         });
-        listenerIds.computeIfAbsent(topic, k -> Collections.synchronizedList(new ArrayList<>())).add(listenerId);
+        entry.listenerIds.add(listenerId);
         log.info("Pub/Sub subscribed to topic [{}] (listenerId={})", topic, listenerId);
-        return new Subscription(rtopic, listenerId, topic, listenerIds);
+        return new Subscription(topic, listenerId);
     }
 
     /**
@@ -71,73 +88,81 @@ public class RedisPubSub {
      * @param topic topic 名称
      */
     public void unsubscribeTopic(String topic) {
-        List<Integer> ids = listenerIds.remove(topic);
-        if (ids != null) {
-            synchronized (ids) {
-                RTopic rtopic = redissonClient.getTopic(topic);
-                for (int id : ids) {
-                    try {
-                        rtopic.removeListener(id);
-                    } catch (Exception e) {
-                        log.warn("Pub/Sub removeListener failed for topic [{}] listenerId={}", topic, id, e);
-                    }
-                }
-            }
+        TopicEntry entry = topics.remove(topic);
+        if (entry != null) {
+            removeAllListeners(topic, entry);
             log.info("Pub/Sub unsubscribed all listeners from topic [{}]", topic);
         }
     }
 
     @PreDestroy
     public void destroy() {
-        listenerIds.forEach((topic, ids) -> {
-            // 加锁遍历，避免与 unsubscribe() 中 ids.remove() 并发
-            synchronized (ids) {
-                RTopic rtopic = redissonClient.getTopic(topic);
-                for (int id : ids) {
-                    try {
-                        rtopic.removeListener(id);
-                    } catch (Exception e) {
-                        // 容错：单个 listener 清理失败不影响其他 topic
-                        log.warn("Pub/Sub removeListener failed for topic [{}] listenerId={}", topic, id, e);
-                    }
-                }
-            }
-        });
-        listenerIds.clear();
+        // 先快照再清空，避免与并发 unsubscribeTopic() 在遍历中互相干扰
+        List<Map.Entry<String, TopicEntry>> snapshot = new ArrayList<>(topics.entrySet());
+        topics.clear();
+        for (Map.Entry<String, TopicEntry> e : snapshot) {
+            removeAllListeners(e.getKey(), e.getValue());
+        }
         log.info("Pub/Sub all listeners removed");
+    }
+
+    private void removeAllListeners(String topic, TopicEntry entry) {
+        for (int id : entry.listenerIds) {
+            try {
+                entry.topic.removeListener(id);
+            } catch (Exception e) {
+                log.warn("Pub/Sub removeListener failed for topic [{}] listenerId={}", topic, id, e);
+            }
+        }
+    }
+
+    /**
+     * 取消单条订阅并清理已空的 topic 条目.
+     * 由 Subscription.unsubscribe() 调用.
+     */
+    private void detach(String topicName, int listenerId) {
+        topics.computeIfPresent(topicName, (k, entry) -> {
+            try {
+                entry.topic.removeListener(listenerId);
+            } catch (Exception e) {
+                log.warn("Pub/Sub removeListener failed for topic [{}] listenerId={}", topicName, listenerId, e);
+            }
+            entry.listenerIds.remove(Integer.valueOf(listenerId));
+            return entry.listenerIds.isEmpty() ? null : entry;
+        });
+    }
+
+    /**
+     * 单个 topic 的缓存：复用 RTopic，并使用 CopyOnWriteArrayList
+     * 存储 listenerId（写少读多，遍历无需加锁）.
+     */
+    private static final class TopicEntry {
+        final RTopic topic;
+        final CopyOnWriteArrayList<Integer> listenerIds = new CopyOnWriteArrayList<>();
+
+        TopicEntry(RTopic topic) {
+            this.topic = topic;
+        }
     }
 
     /**
      * 订阅句柄，用于取消单次订阅.
      */
-    public static class Subscription {
+    public class Subscription {
 
-        private final RTopic topic;
-        private final int listenerId;
         private final String topicName;
-        private final Map<String, List<Integer>> listenerIds;
+        private final int listenerId;
 
-        private Subscription(RTopic topic, int listenerId, String topicName,
-                             Map<String, List<Integer>> listenerIds) {
-            this.topic = topic;
-            this.listenerId = listenerId;
+        private Subscription(String topicName, int listenerId) {
             this.topicName = topicName;
-            this.listenerIds = listenerIds;
+            this.listenerId = listenerId;
         }
 
         /**
          * 取消本次订阅.
          */
         public void unsubscribe() {
-            topic.removeListener(listenerId);
-            // 原子操作：get + remove 合并为 computeIfPresent
-            // 内部对 ids 加 synchronized，与 destroy() 遍历共享同一把锁
-            listenerIds.computeIfPresent(topicName, (k, ids) -> {
-                synchronized (ids) {
-                    ids.remove(Integer.valueOf(listenerId));
-                }
-                return ids.isEmpty() ? null : ids;
-            });
+            detach(topicName, listenerId);
         }
     }
 }
