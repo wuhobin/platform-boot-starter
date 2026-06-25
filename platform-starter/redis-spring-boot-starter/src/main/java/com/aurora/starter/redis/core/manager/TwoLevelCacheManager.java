@@ -1,5 +1,6 @@
-package com.aurora.starter.redis.core;
+package com.aurora.starter.redis.core.manager;
 
+import com.aurora.starter.redis.core.TwoLevelCache;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 

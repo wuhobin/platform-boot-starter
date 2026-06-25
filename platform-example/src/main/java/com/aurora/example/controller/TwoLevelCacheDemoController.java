@@ -1,7 +1,7 @@
 package com.aurora.example.controller;
 
 import com.aurora.starter.redis.core.TwoLevelCache;
-import com.aurora.starter.redis.core.TwoLevelCacheManager;
+import com.aurora.starter.redis.core.manager.TwoLevelCacheManager;
 import com.aurora.starter.webmvc.domain.response.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -5,9 +5,10 @@ import com.aurora.starter.redis.core.JsonRedisTemplate;
 import com.aurora.starter.redis.core.RedisBloomFilter;
 import com.aurora.starter.redis.core.RedisCache;
 import com.aurora.starter.redis.core.RedisMessageQueue;
+import com.aurora.starter.redis.core.RedisPubSub;
 import com.aurora.starter.redis.core.RedisRateLimiter;
 import com.aurora.starter.redis.core.TwoLevelCache;
-import com.aurora.starter.redis.core.TwoLevelCacheManager;
+import com.aurora.starter.redis.core.manager.TwoLevelCacheManager;
 import org.redisson.api.RBloomFilter;
 import org.redisson.api.RedissonClient;
 import org.redisson.codec.JsonJacksonCodec;
@@ -77,6 +78,18 @@ public class RedisAutoConfig {
     @Bean
     public RedisMessageQueue redisMessageQueue(RedissonClient redissonClient) {
         return new RedisMessageQueue(redissonClient);
+    }
+
+    /**
+     * Redis Pub/Sub 发布订阅.
+     *
+     * @param redissonClient redisson 客户端
+     * @return RedisPubSub
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public RedisPubSub redisPubSub(RedissonClient redissonClient) {
+        return new RedisPubSub(redissonClient);
     }
 
     /**
