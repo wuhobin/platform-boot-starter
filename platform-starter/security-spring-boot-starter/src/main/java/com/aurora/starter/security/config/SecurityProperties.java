@@ -20,20 +20,15 @@ public class SecurityProperties {
      * starter 自身保证已知的放行路径（默认开放），最终放行列表 = 默认列表 + 用户自定义列表（去重）
      */
     private static final List<String> DEFAULT_EXCLUDE_PATHS = List.of(
-            // Knife4j / Swagger UI
             "/doc.html",
             "/webjars/**",
             "/swagger-resources/**",
             "/swagger-ui/**",
             "/swagger-ui.html",
-            // OpenAPI 文档
             "/v3/api-docs/**",
             "/v2/api-docs/**",
-            // Spring Boot Actuator
             "/actuator/**",
-            // 静态资源
             "/favicon.ico",
-            // Spring Boot 错误页（避免 401 重定向循环）
             "/error"
     );
 

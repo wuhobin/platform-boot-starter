@@ -85,9 +85,6 @@ platform:
       - /test/**
       - /users/**
       - /redis-demo/**
-      - /swagger-resources/**
-      - /v3/api-docs/**
-      - /doc.html
 
   # MyBatis-Plus 扩展配置
   mybatis-plus:
