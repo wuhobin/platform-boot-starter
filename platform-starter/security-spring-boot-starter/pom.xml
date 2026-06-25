@@ -22,13 +22,7 @@
             <artifactId>platform-common</artifactId>
         </dependency>
 
-        <!-- 平台 WebMVC 通用件（Result, DefaultBizCode） -->
-        <dependency>
-            <groupId>com.aurora</groupId>
-            <artifactId>platform-webmvc</artifactId>
-        </dependency>
-
-        <!-- Sa-Token Spring Boot 3 -->
+<!-- Sa-Token Spring Boot 3 -->
         <dependency>
             <groupId>cn.dev33</groupId>
             <artifactId>sa-token-spring-boot3-starter</artifactId>
