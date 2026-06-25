@@ -35,11 +35,16 @@ public class SecurityAutoConfiguration implements WebMvcConfigurer {
 
     private final SecurityProperties securityProperties;
     private final ObjectProvider<PermissionProvider> permissionProvider;
+    /**
+     * excludePaths 缓存为数组，避免每次请求都重新分配。
+     */
+    private final String[] excludePathArray;
 
     public SecurityAutoConfiguration(SecurityProperties securityProperties,
                                      ObjectProvider<PermissionProvider> permissionProvider) {
         this.securityProperties = securityProperties;
         this.permissionProvider = permissionProvider;
+        this.excludePathArray = securityProperties.getExcludePaths().toArray(new String[0]);
     }
 
     /**
@@ -99,31 +104,7 @@ public class SecurityAutoConfiguration implements WebMvcConfigurer {
     @Bean
     @ConditionalOnMissingBean(StpInterface.class)
     public StpInterface stpInterface() {
-        return new StpInterface() {
-            @Override
-            public List<String> getPermissionList(Object loginId, String loginType) {
-                PermissionProvider provider = permissionProvider.getIfAvailable();
-                if (provider != null) {
-                    return provider.getPermissionList(loginId, loginType);
-                }
-                return List.of();
-            }
-
-            @Override
-            public List<String> getRoleList(Object loginId, String loginType) {
-                PermissionProvider provider = permissionProvider.getIfAvailable();
-                if (provider != null) {
-                    return provider.getRoleList(loginId, loginType);
-                }
-                return List.of();
-            }
-
-            @Override
-            public String toString() {
-                PermissionProvider provider = permissionProvider.getIfAvailable();
-                return provider != null ? provider.getClass().getSimpleName() : "PermissionProvider (not provided)";
-            }
-        };
+        return new PermissionProviderBackedStpInterface(permissionProvider);
     }
 
     /**
@@ -134,8 +115,46 @@ public class SecurityAutoConfiguration implements WebMvcConfigurer {
         registry.addInterceptor(new SaInterceptor(handle -> {
             SaRouter
                     .match("/**")
-                    .notMatch(securityProperties.getExcludePaths().toArray(new String[0]))
+                    .notMatch(excludePathArray)
                     .check(r -> StpUtil.checkLogin());
         })).addPathPatterns("/**");
+    }
+
+    /**
+     * 基于 {@link PermissionProvider} 的 StpInterface 实现。
+     * <p>
+     * 每次鉴权时通过 {@link ObjectProvider} 解析（避免构造时强制要求存在），
+     * 解决匿名内部类在 Sa-Token 启动日志中显示为 {@code null} 的问题。
+     * </p>
+     */
+    private static final class PermissionProviderBackedStpInterface implements StpInterface {
+
+        private final ObjectProvider<PermissionProvider> provider;
+
+        private PermissionProviderBackedStpInterface(ObjectProvider<PermissionProvider> provider) {
+            this.provider = provider;
+        }
+
+        private PermissionProvider resolve() {
+            return provider.getIfAvailable();
+        }
+
+        @Override
+        public List<String> getPermissionList(Object loginId, String loginType) {
+            PermissionProvider p = resolve();
+            return p != null ? p.getPermissionList(loginId, loginType) : List.of();
+        }
+
+        @Override
+        public List<String> getRoleList(Object loginId, String loginType) {
+            PermissionProvider p = resolve();
+            return p != null ? p.getRoleList(loginId, loginType) : List.of();
+        }
+
+        @Override
+        public String toString() {
+            PermissionProvider p = resolve();
+            return p != null ? p.getClass().getSimpleName() : "PermissionProvider (not provided)";
+        }
     }
 }

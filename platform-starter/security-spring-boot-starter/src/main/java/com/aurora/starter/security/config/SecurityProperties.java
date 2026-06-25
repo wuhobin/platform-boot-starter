@@ -41,11 +41,10 @@ public class SecurityProperties {
     private boolean isLog = false;
 
     /**
-     * SaInterceptor 放行路径
+     * SaInterceptor 放行路径（仅包含 starter 自身保证已知的路径，
+     * 业务方应根据实际接口扩展该列表 —— 业务登录/注册等路径由消费方提供）
      */
     private List<String> excludePaths = List.of(
-            "/api/v1/auth/login",
-            "/api/v1/auth/register",
             "/swagger-resources/**",
             "/v3/api-docs/**"
     );
