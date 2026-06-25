@@ -1,4 +1,4 @@
-package com.aurora.example.security;
+package com.aurora.example.controller.security;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.dev33.satoken.annotation.SaCheckRole;

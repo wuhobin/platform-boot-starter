@@ -33,7 +33,7 @@ public class SecurityProperties {
     /**
      * 是否打印 Sa-Token 框架内部日志
      */
-    private boolean isLog = false;
+    private boolean isLog = true;
 
     /**
      * SaInterceptor 放行路径

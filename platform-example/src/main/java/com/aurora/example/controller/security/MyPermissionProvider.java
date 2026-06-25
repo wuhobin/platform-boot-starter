@@ -1,4 +1,4 @@
-package com.aurora.example.security;
+package com.aurora.example.controller.security;
 
 import com.aurora.starter.security.spi.PermissionProvider;
 import org.springframework.stereotype.Component;
