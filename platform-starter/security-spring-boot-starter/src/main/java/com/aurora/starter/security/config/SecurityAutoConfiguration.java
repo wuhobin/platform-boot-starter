@@ -61,7 +61,7 @@ public class SecurityAutoConfiguration implements WebMvcConfigurer {
         // Token 有效期（单位：秒），默认 7 天
         config.setTimeout(securityProperties.getTimeout());
         // 临时有效期（指定时间内无操作则半途失效，-1 代表不开启）
-        config.setActivityTimeout(-1);
+        config.setActiveTimeout(-1);
         // 是否允许同一账号多端同时登录
         config.setIsConcurrent(true);
         // 在多人登录同一账号时，是否共享同一个 Token
