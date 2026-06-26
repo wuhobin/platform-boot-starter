@@ -83,7 +83,7 @@ public class UserController {
 | `platform.security.timeout` | int | 604800 | Token 有效期（秒），默认 7 天 |
 | `platform.security.token-style` | String | uuid | Token 生成风格（uuid/simple-uuid/random-32/random-64/random-128/tik） |
 | `platform.security.is-log` | boolean | false | 是否打印 Sa-Token 框架日志 |
-| `platform.security.exclude-paths` | List\<String\> | swagger/actuator/error | 放行路径，详见下表 |
+| `platform.security.exclude-paths` | List\<String\> | swagger/actuator/error | 多账号下对所有 type 统一生效 |
 
 ## SecurityUtils API
 
@@ -112,3 +112,78 @@ public class UserController {
 | `NotRoleException` | 403 FORBIDDEN | "无权限" |
 | `DisableServiceException` | 403 FORBIDDEN | "账号已被封禁" |
 | `SaTokenException` | 500 SERVER_ERROR | 异常消息 |
+
+## 多账号体系
+
+适用于"同系统多端身份"场景（C 端 / 后台 / 商家等），
+每种身份有独立的登录态、独立的 token 命名空间，互不污染。
+
+> **类型安全：**使用 `AccountType` 枚举（`LOGIN` / `ADMIN` / `MERCHANT`），
+> 只有 Sa-Token `@SaCheckLogin(type = "admin")` 等注解的 `type` 属性保留 String
+> ——这是 Java 注解的限制，无法用枚举方法调用作为注解属性值。
+
+### 1. 声明账号体系
+
+```java
+@Configuration
+public class MyAccountConfig {
+    @Bean
+    public AccountTypeDefinition adminAccount() {
+        return new SimpleAccountTypeDefinition(AccountType.ADMIN, List.of("/admin/**"), "后台管理员");
+    }
+    @Bean
+    public AccountTypeDefinition merchantAccount() {
+        return new SimpleAccountTypeDefinition(AccountType.MERCHANT, List.of("/merchant/**"), "商家");
+    }
+}
+```
+
+### 2. 登录 / 鉴权
+
+```java
+// Controller 登录
+SecurityUtils.loginAs(AccountType.ADMIN, 10001L);     // 管理员登录
+SecurityUtils.loginAs(AccountType.MERCHANT, 20001L);  // 商家登录
+
+// 方法级注解鉴权（Sa-Token 原生注解，type 仍为 String——Java 注解限制）
+@SaCheckLogin(type = "admin")
+@SaCheckPermission(type = "admin", value = "user:add")
+public Result<?> createUser(...) { ... }
+
+// 编程式校验
+SecurityUtils.checkLoginAs(AccountType.ADMIN);
+SecurityUtils.checkPermissionAs(AccountType.MERCHANT, "order:ship");
+```
+
+### 3. 权限数据
+
+`PermissionProvider` 接收 `AccountType loginType` 枚举参数，业务方在实现里 `switch` 分派：
+
+```java
+@Override
+public List<String> getPermissionList(Object loginId, AccountType loginType) {
+    return switch (loginType) {
+        case ADMIN    -> adminPermService.listByUser((Long) loginId);
+        case MERCHANT -> merchantPermService.listByUser((Long) loginId);
+        default       -> List.of();
+    };
+}
+```
+
+### 路径匹配顺序
+
+当 `paths` 中有重叠模式（如 `/admin/login` 与 `/admin/**`），
+将**更具体的写在前面**，否则模糊匹配会先命中。
+
+### 模式迁移
+
+- **不声明任何 `AccountTypeDefinition` Bean**：旧 catch-all 行为，**无须任何改动**
+- **声明了 `AccountTypeDefinition` Bean（且至少一个带 paths）**：进入显式多账号模式，
+  仅校验各账号 paths 命中的 URL。若希望保留旧 catch-all 行为，可显式声明：
+
+  ```java
+  @Bean
+  public AccountTypeDefinition loginAccount() {
+      return new SimpleAccountTypeDefinition(AccountType.LOGIN, List.of("/**"), "default");
+  }
+  ```

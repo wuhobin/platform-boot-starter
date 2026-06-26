@@ -1,5 +1,6 @@
 package com.aurora.starter.security.config;
 
+import cn.dev33.satoken.SaManager;
 import cn.dev33.satoken.config.SaTokenConfig;
 import cn.dev33.satoken.dao.SaTokenDao;
 import cn.dev33.satoken.dao.SaTokenDaoForRedisson;
@@ -7,9 +8,17 @@ import cn.dev33.satoken.interceptor.SaInterceptor;
 import cn.dev33.satoken.router.SaRouter;
 import cn.dev33.satoken.stp.StpInterface;
 import cn.dev33.satoken.stp.StpUtil;
+import com.aurora.starter.security.account.AccountType;
+import com.aurora.starter.security.account.AccountTypeDefinition;
+import com.aurora.starter.security.account.AccountTypeRegistry;
+import com.aurora.starter.security.context.SecurityUtils;
+import com.aurora.starter.security.context.SecurityUtils;
 import com.aurora.starter.security.log.SaLogForSlf4j;
 import com.aurora.starter.security.spi.PermissionProvider;
+import jakarta.annotation.PostConstruct;
 import org.redisson.api.RedissonClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -21,12 +30,19 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Sa-Token 安全自动配置
  * <p>
- * 当 platform.security.enabled=true 时生效（默认开启）。
- * 自动注册 SaTokenDao（Redisson）、StpInterface（PermissionProvider 适配）、SaInterceptor。
+ * 当 {@code platform.security.enabled=true} 时生效（默认开启）。
+ * 自动注册：
+ * <ul>
+ *   <li>{@link SaTokenConfig}（Bearer Token 风格，token-name/timeout 共享给所有账号）</li>
+ *   <li>{@link SaTokenDao}（Redisson）</li>
+ *   <li>{@link StpInterface}（{@link PermissionProvider} 适配，{@code loginType} 透传）</li>
+ *   <li>{@link SaInterceptor}（单拦截器 + SaRouter 多 match，按 {@link AccountTypeRegistry} 路由）</li>
+ * </ul>
  * </p>
  */
 @AutoConfiguration
@@ -34,69 +50,84 @@ import java.util.List;
 @ConditionalOnProperty(prefix = "platform.security", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class SecurityAutoConfiguration implements WebMvcConfigurer {
 
+    private static final Logger log = LoggerFactory.getLogger(SecurityAutoConfiguration.class);
+
     private final SecurityProperties securityProperties;
     private final ObjectProvider<PermissionProvider> permissionProvider;
+    /**
+     * 内部使用：从 {@link List} 构造的 {@link AccountTypeRegistry} 实例。
+     * <p>不暴露为 Spring Bean —— 它是本自动配置类的实现细节，外部无需注入。
+     * 业务方可通过 {@link AccountTypeDefinition} 间接影响（声明 Bean）。</p>
+     */
+    private final AccountTypeRegistry accountRegistry;
 
     public SecurityAutoConfiguration(SecurityProperties securityProperties,
-                                     ObjectProvider<PermissionProvider> permissionProvider) {
+                                     ObjectProvider<PermissionProvider> permissionProvider,
+                                     List<AccountTypeDefinition> accountDefinitions) {
         this.securityProperties = securityProperties;
         this.permissionProvider = permissionProvider;
+        this.accountRegistry = new AccountTypeRegistry(accountDefinitions);
+        // 多账号标记：除默认 LOGIN 外还有其他账号 → 禁止 SecurityUtils.login() 等无参方法
+        if (accountDefinitions.stream().anyMatch(a -> a.getType() != AccountType.LOGIN)) {
+            SecurityUtils.markMultiAccountMode();
+        }
+    }
+
+    @PostConstruct
+    void logStartupSummary() {
+        PermissionProvider p = permissionProvider.getIfAvailable();
+        String accounts = accountRegistry.all().stream()
+                .map(a -> String.format("%n      ├─ %-8s (%s, paths=%s)",
+                        a.getType().getCode(),
+                        a.getDescription().isBlank() ? "-" : a.getDescription(),
+                        a.getPaths()))
+                .collect(Collectors.joining());
+        log.info(
+                "Platform Security Starter initialized"
+                        + "%n    Token         : {} Bearer <token>, timeout={}s"
+                        + "%n    Multi-Account : {}"
+                        + "%n    Accounts      : {}{}"
+                        + "%n    Permission SPI: {}"
+                        + "%n    Excludes      : {}",
+                securityProperties.getTokenName(),
+                securityProperties.getTimeout(),
+                accountRegistry.all().stream().anyMatch(a -> a.getType() != AccountType.LOGIN)
+                        ? "ON（多账号模式）" : "OFF（单账号模式，catch-all /**）",
+                accountRegistry.all().size(),
+                accounts,
+                p != null ? p.getClass().getSimpleName() : "(not provided)",
+                securityProperties.getExcludePaths());
     }
 
     /**
-     * 配置 Sa-Token 参数，使用 @Primary 覆盖 Sa-Token 自身的 SaTokenConfig bean
-     * <p>
-     * 默认配置遵循 RESTful Bearer Token 规范：
-     * Header: Authorization: Bearer &lt;token&gt;
-     * 前后端分离，仅从 Header 读取，不从 Cookie/Body 读取。
-     * </p>
+     * 配置 Sa-Token 参数，使用 @Primary 覆盖 Sa-Token 自身的 SaTokenConfig bean。
+     * <p>所有账号共享 token-name/timeout；账号隔离由 sa-token loginType 机制保证。</p>
      */
     @Primary
     @Bean
     public SaTokenConfig saTokenConfig() {
         SaTokenConfig config = new SaTokenConfig();
-        // Token 标识名（前端请求 Header 中需要携带的 Key）
         config.setTokenName(securityProperties.getTokenName());
-        // Token 前缀（遵循 Bearer Token 标准规范，注意后面有一个空格）
         config.setTokenPrefix("Bearer");
-        // Token 有效期（单位：秒），默认 7 天
         config.setTimeout(securityProperties.getTimeout());
-        // 临时有效期（指定时间内无操作则半途失效，-1 代表不开启）
         config.setActiveTimeout(-1);
-        // 是否允许同一账号多端同时登录
         config.setIsConcurrent(true);
-        // 在多人登录同一账号时，是否共享同一个 Token
         config.setIsShare(true);
-        // Token 生成风格，默认 uuid 格式
         config.setTokenStyle(securityProperties.getTokenStyle());
-        // 是否向控制台打印框架内部日志
         config.setIsLog(securityProperties.isLog());
-        // 是否打印每次请求的 Token 信息
         config.setIsPrint(false);
-        // 是否从 Cookie 中尝试读取 Token
         config.setIsReadCookie(false);
-        // 是否从 Header 中读取 Token（前后端分离项目必须开启）
         config.setIsReadHeader(true);
-        // 是否从 Body 请求体中读取 Token
         config.setIsReadBody(false);
         return config;
     }
 
-    /**
-     * 注册 SaTokenDao（Redisson 实现）
-     * <p>
-     * 复用已存在的 RedissonClient Bean（由 redisson-spring-boot-starter 或 redis-spring-boot-starter 提供）。
-     * </p>
-     */
     @Bean
     @ConditionalOnMissingBean(SaTokenDao.class)
     public SaTokenDao saTokenDao(RedissonClient redissonClient) {
         return new SaTokenDaoForRedisson(redissonClient);
     }
 
-    /**
-     * 注册 StpInterface 实现（适配 PermissionProvider SPI）
-     */
     @Bean
     @ConditionalOnMissingBean(StpInterface.class)
     public StpInterface stpInterface() {
@@ -109,24 +140,43 @@ public class SecurityAutoConfiguration implements WebMvcConfigurer {
     }
 
     /**
-     * 注册 SaInterceptor 路由拦截器
+     * 注册 SaInterceptor 路由拦截器。
+     * <p>
+     * <b>模式判定：</b>当注册表中存在除 {@link AccountType#LOGIN} 以外的账号时，
+     * 认为业务方声明了多账号体系，每个账号按自己的 paths 路由；
+     * 否则保持旧 catch-all {@code /**} 行为（向后兼容）。
+     * </p>
      */
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(new SaInterceptor(handle -> {
-            SaRouter
-                    .match("/**")
-                    .notMatch(securityProperties.getExcludePaths().toArray(new String[0]))
-                    .check(r -> StpUtil.checkLogin());
+        String[] defaultExcludes = securityProperties.getExcludePaths().toArray(new String[0]);
+        boolean hasExplicitAccounts = accountRegistry.all().stream()
+                .anyMatch(a -> a.getType() != AccountType.LOGIN);
+
+        registry.addInterceptor(new SaInterceptor(handler -> {
+            if (!hasExplicitAccounts) {
+                // 单账号世界：保持旧 catch-all 行为
+                SaRouter.match("/**")
+                        .notMatch(defaultExcludes)
+                        .check(r -> StpUtil.checkLogin());
+                return;
+            }
+            // 多账号世界：每个账号按自己的 paths 路由
+            for (AccountTypeDefinition acc : accountRegistry.all()) {
+                List<String> paths = acc.getPaths();
+                if (paths == null || paths.isEmpty()) {
+                    continue;
+                }
+                SaRouter.match(paths.toArray(new String[0]))
+                        .notMatch(defaultExcludes)
+                        .check(r -> SecurityUtils.checkLoginAs(acc.getType()));
+            }
         })).addPathPatterns("/**");
     }
 
     /**
      * 基于 {@link PermissionProvider} 的 StpInterface 实现。
-     * <p>
-     * 每次鉴权时通过 {@link ObjectProvider} 解析（避免构造时强制要求存在），
-     * 解决匿名内部类在 Sa-Token 启动日志中显示为 {@code null} 的问题。
-     * </p>
+     * <p>{@code loginType} 透传给业务方 PermissionProvider，由其在内部 switch 分派。</p>
      */
     private static final class PermissionProviderBackedStpInterface implements StpInterface {
 
@@ -143,13 +193,27 @@ public class SecurityAutoConfiguration implements WebMvcConfigurer {
         @Override
         public List<String> getPermissionList(Object loginId, String loginType) {
             PermissionProvider p = resolve();
-            return p != null ? p.getPermissionList(loginId, loginType) : List.of();
+            if (p == null) {
+                return List.of();
+            }
+            AccountType type = AccountType.fromCode(loginType);
+            if (type == null) {
+                return List.of();
+            }
+            return p.getPermissionList(loginId, type);
         }
 
         @Override
         public List<String> getRoleList(Object loginId, String loginType) {
             PermissionProvider p = resolve();
-            return p != null ? p.getRoleList(loginId, loginType) : List.of();
+            if (p == null) {
+                return List.of();
+            }
+            AccountType type = AccountType.fromCode(loginType);
+            if (type == null) {
+                return List.of();
+            }
+            return p.getRoleList(loginId, type);
         }
 
         @Override

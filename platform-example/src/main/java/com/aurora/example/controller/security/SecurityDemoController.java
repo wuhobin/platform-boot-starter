@@ -18,7 +18,9 @@ import java.util.Map;
 public class SecurityDemoController {
 
     /**
-     * 登录接口（使用固定的 demo 用户）
+     * 登录接口（单账号模式 demo，使用默认 login type）。
+     * <p>多账号模式下此接口会因 {@code SecurityUtils.login} 入口校验抛异常——
+     * 多账号体系请用 {@code AdminAuthController} / {@code MerchantAuthController}。</p>
      */
     @PostMapping("/login")
     public Result<?> login() {
@@ -52,7 +54,7 @@ public class SecurityDemoController {
                 "isLogin", SecurityUtils.isLogin(),
                 "hasUserRead", SecurityUtils.hasPermission("user:read"),
                 "hasAdminWrite", SecurityUtils.hasPermission("admin:write"),
-                "hasRoleUser", SecurityUtils.hasRole("user"),
+                "hasRoleUser", SecurityUtils.hasRole("USER"),
                 "hasRoleAdmin", SecurityUtils.hasRole("admin")
         );
         return Result.data(data);
