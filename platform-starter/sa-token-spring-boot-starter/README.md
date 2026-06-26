@@ -17,7 +17,7 @@
 ```xml
 <dependency>
     <groupId>com.aurora</groupId>
-    <artifactId>security-spring-boot-starter</artifactId>
+    <artifactId>sa-token-spring-boot-starter</artifactId>
     <version>${latest.version}</version>
 </dependency>
 ```

@@ -58,9 +58,9 @@ public class SecurityProperties {
     private boolean isLog = false;
 
     /**
-     * 业务方自定义的放行路径（与 starter 默认放行路径合并去重）
+     * 业务方声明的<b>额外</b>放行路径，会与 starter 内置默认路径合并去重。
      * <p>
-     * 最终放行列表 = starter 默认列表 + 本字段列表（去重）。
+     * 最终放行列表 = 内置默认列表（swagger / actuator / error 等）+ 本字段列表（去重）。
      * 业务登录/注册等接口直接追加到 yml 即可，无需重复写 swagger/actuator 等默认路径。
      * </p>
      */

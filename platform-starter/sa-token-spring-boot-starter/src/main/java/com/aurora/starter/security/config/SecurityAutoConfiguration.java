@@ -12,7 +12,6 @@ import com.aurora.starter.security.account.AccountType;
 import com.aurora.starter.security.account.AccountTypeDefinition;
 import com.aurora.starter.security.account.AccountTypeRegistry;
 import com.aurora.starter.security.context.SecurityUtils;
-import com.aurora.starter.security.context.SecurityUtils;
 import com.aurora.starter.security.log.SaLogForSlf4j;
 import com.aurora.starter.security.spi.PermissionProvider;
 import jakarta.annotation.PostConstruct;
@@ -60,6 +59,7 @@ public class SecurityAutoConfiguration implements WebMvcConfigurer {
      * 业务方可通过 {@link AccountTypeDefinition} 间接影响（声明 Bean）。</p>
      */
     private final AccountTypeRegistry accountRegistry;
+    private final boolean hasExplicitAccounts;
 
     public SecurityAutoConfiguration(SecurityProperties securityProperties,
                                      ObjectProvider<PermissionProvider> permissionProvider,
@@ -67,8 +67,9 @@ public class SecurityAutoConfiguration implements WebMvcConfigurer {
         this.securityProperties = securityProperties;
         this.permissionProvider = permissionProvider;
         this.accountRegistry = new AccountTypeRegistry(accountDefinitions);
-        // 多账号标记：除默认 LOGIN 外还有其他账号 → 禁止 SecurityUtils.login() 等无参方法
-        if (accountDefinitions.stream().anyMatch(a -> a.getType() != AccountType.LOGIN)) {
+        this.hasExplicitAccounts = accountDefinitions.stream()
+                .anyMatch(a -> a.getType() != AccountType.LOGIN);
+        if (hasExplicitAccounts) {
             SecurityUtils.markMultiAccountMode();
         }
     }
@@ -91,7 +92,7 @@ public class SecurityAutoConfiguration implements WebMvcConfigurer {
                         + "%n    Excludes      : {}",
                 securityProperties.getTokenName(),
                 securityProperties.getTimeout(),
-                accountRegistry.all().stream().anyMatch(a -> a.getType() != AccountType.LOGIN)
+                hasExplicitAccounts
                         ? "ON（多账号模式）" : "OFF（单账号模式，catch-all /**）",
                 accountRegistry.all().size(),
                 accounts,
@@ -150,8 +151,6 @@ public class SecurityAutoConfiguration implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         String[] defaultExcludes = securityProperties.getExcludePaths().toArray(new String[0]);
-        boolean hasExplicitAccounts = accountRegistry.all().stream()
-                .anyMatch(a -> a.getType() != AccountType.LOGIN);
 
         registry.addInterceptor(new SaInterceptor(handler -> {
             if (!hasExplicitAccounts) {

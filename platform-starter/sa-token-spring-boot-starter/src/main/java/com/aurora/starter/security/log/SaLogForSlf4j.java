@@ -3,7 +3,6 @@ package com.aurora.starter.security.log;
 import cn.dev33.satoken.log.SaLog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 
 /**
  * 将 Sa-Token log 信息转接到 Slf4j
@@ -14,7 +13,6 @@ import org.springframework.stereotype.Component;
  * 与业务日志统一输出并受业务日志级别控制。
  * </p>
  */
-@Component
 public class SaLogForSlf4j implements SaLog {
 
     Logger log = LoggerFactory.getLogger(SaLogForSlf4j.class);
