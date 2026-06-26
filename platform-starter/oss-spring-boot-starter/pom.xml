@@ -24,6 +24,12 @@
             <artifactId>x-file-storage-spring</artifactId>
         </dependency>
 
+        <!-- Spring Web (提供 MultipartFile 等) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
     </dependencies>
 
     <build>
