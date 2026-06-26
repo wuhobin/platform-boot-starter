@@ -24,10 +24,11 @@
             <artifactId>x-file-storage-spring</artifactId>
         </dependency>
 
-        <!-- Spring Web (提供 MultipartFile 等) -->
+        <!-- Spring Web（提供 MultipartFile，scope=provided 避免强制下游引入） -->
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+            <scope>provided</scope>
         </dependency>
 
     </dependencies>
