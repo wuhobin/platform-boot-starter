@@ -2,11 +2,7 @@ package com.aurora.starter.oss.template;
 
 import com.aurora.starter.oss.model.OssUploadResult;
 import org.dromara.x.file.storage.core.FileInfo;
-import org.dromara.x.file.storage.core.FileStorageService;
 import org.dromara.x.file.storage.core.UploadPretreatment;
-
-import java.io.File;
-import java.io.InputStream;
 
 /**
  * 链式上传 Builder.
