@@ -15,6 +15,7 @@ import org.dromara.x.file.storage.core.UploadPretreatment;
 public class OssUploadBuilder {
 
     private final UploadPretreatment pretreatment;
+    private FileInfo cachedResult;
 
     public OssUploadBuilder(UploadPretreatment pretreatment) {
         this.pretreatment = pretreatment;
@@ -92,12 +93,18 @@ public class OssUploadBuilder {
 
     /** 执行上传，返回 OssUploadResult */
     public OssUploadResult upload() {
-        FileInfo fileInfo = pretreatment.upload();
-        return OssUploadResult.from(fileInfo);
+        return OssUploadResult.from(doUpload());
     }
 
     /** 执行上传，返回原生 FileInfo */
     public FileInfo uploadRaw() {
-        return pretreatment.upload();
+        return doUpload();
+    }
+
+    private FileInfo doUpload() {
+        if (cachedResult == null) {
+            cachedResult = pretreatment.upload();
+        }
+        return cachedResult;
     }
 }

@@ -116,8 +116,7 @@ public class OssTemplate {
 
     /** 通过 URL 下载为字节数组 */
     public byte[] download(String url) {
-        FileInfo fileInfo = new FileInfo().setUrl(url);
-        return fileStorageService.download(fileInfo).bytes();
+        return download(toFileInfo(url));
     }
 
     /** 通过 FileInfo 下载为字节数组 */
@@ -127,22 +126,19 @@ public class OssTemplate {
 
     /** 通过 URL 下载到 OutputStream */
     public void download(String url, OutputStream out) {
-        FileInfo fileInfo = new FileInfo().setUrl(url);
-        fileStorageService.download(fileInfo).outputStream(out);
+        fileStorageService.download(toFileInfo(url)).outputStream(out);
     }
 
     /** 通过 URL 下载，以 Consumer 方式处理 InputStream */
     public void download(String url, Consumer<InputStream> consumer) {
-        FileInfo fileInfo = new FileInfo().setUrl(url);
-        fileStorageService.download(fileInfo).inputStream(consumer);
+        fileStorageService.download(toFileInfo(url)).inputStream(consumer);
     }
 
     // ==================== 删除 ====================
 
     /** 通过 URL 删除文件 */
     public boolean delete(String url) {
-        FileInfo fileInfo = new FileInfo().setUrl(url);
-        return fileStorageService.delete(fileInfo);
+        return delete(toFileInfo(url));
     }
 
     /** 通过 FileInfo 删除文件 */
@@ -159,20 +155,14 @@ public class OssTemplate {
 
     /** 判断文件是否存在 */
     public boolean exists(String url) {
-        FileInfo fileInfo = new FileInfo().setUrl(url);
-        return fileStorageService.exists(fileInfo);
+        return fileStorageService.exists(toFileInfo(url));
     }
 
     // ==================== 复制/移动 ====================
 
     /** 同平台复制文件 */
     public OssUploadResult copy(String sourceUrl, String targetPath, String targetFilename) {
-        FileInfo sourceFile = fileStorageService.getFileInfoByUrl(sourceUrl);
-        FileInfo result = fileStorageService.copy(sourceFile)
-                .setPath(targetPath)
-                .setFilename(targetFilename)
-                .copy();
-        return OssUploadResult.from(result);
+        return copy(sourceUrl, targetPath, targetFilename, null);
     }
 
     /** 指定平台复制文件 */
@@ -188,12 +178,7 @@ public class OssTemplate {
 
     /** 同平台移动/重命名文件 */
     public OssUploadResult move(String sourceUrl, String targetPath, String targetFilename) {
-        FileInfo sourceFile = fileStorageService.getFileInfoByUrl(sourceUrl);
-        FileInfo result = fileStorageService.move(sourceFile)
-                .setPath(targetPath)
-                .setFilename(targetFilename)
-                .move();
-        return OssUploadResult.from(result);
+        return move(sourceUrl, targetPath, targetFilename, null);
     }
 
     /** 指定平台移动文件 */
@@ -222,5 +207,11 @@ public class OssTemplate {
     /** 获取底层的 FileStorageService，用于需要完整 API 的场景 */
     public FileStorageService getFileStorageService() {
         return fileStorageService;
+    }
+
+    // ==================== 内部辅助 ====================
+
+    private FileInfo toFileInfo(String url) {
+        return new FileInfo().setUrl(url);
     }
 }

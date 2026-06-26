@@ -3,7 +3,6 @@ package com.aurora.starter.oss.model;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.dromara.x.file.storage.core.FileInfo;
 
 /**
@@ -16,7 +15,6 @@ import org.dromara.x.file.storage.core.FileInfo;
  */
 @Data
 @Builder
-@NoArgsConstructor
 @AllArgsConstructor
 public class OssUploadResult {
 
