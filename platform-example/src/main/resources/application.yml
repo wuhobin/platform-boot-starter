@@ -133,6 +133,11 @@ platform:
           max-size: 2000
           default-ttl: 30s
 
+  quartz:
+    log:
+      skip-list: exampleTask.doSomething()
+
+
 # Knife4j 官方增强配置
 knife4j:
   setting:

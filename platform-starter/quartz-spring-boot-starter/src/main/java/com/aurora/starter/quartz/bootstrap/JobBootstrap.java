@@ -1,5 +1,6 @@
 package com.aurora.starter.quartz.bootstrap;
 
+import com.aurora.starter.quartz.core.job.JobContext;
 import com.aurora.starter.quartz.core.schedule.ScheduleManager;
 import com.aurora.starter.quartz.domain.QuartzJob;
 import com.aurora.starter.quartz.exception.TaskException;
@@ -11,7 +12,6 @@ import org.quartz.SchedulerException;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.annotation.Order;
-import org.springframework.stereotype.Component;
 
 /**
  * 启动时把 quartz_job 中状态正常的任务同步到内存 Quartz.
@@ -38,25 +38,12 @@ public class JobBootstrap implements ApplicationRunner {
         }
         for (QuartzJob entity : jobs) {
             try {
-                scheduleManager.createOrUpdateJob(toContext(entity));
+                scheduleManager.createOrUpdateJob(JobContext.from(entity));
                 log.info("[quartz-spring-boot-starter] 启动同步任务 jobId={}, jobName={}, cron={}",
                         entity.getJobId(), entity.getJobName(), entity.getCronExpression());
             } catch (Exception e) {
                 log.error("[quartz-spring-boot-starter] 启动同步任务失败 jobId={}", entity.getJobId(), e);
             }
         }
-    }
-
-    private com.aurora.starter.quartz.core.job.JobContext toContext(QuartzJob e) {
-        return com.aurora.starter.quartz.core.job.JobContext.builder()
-                .jobId(e.getJobId())
-                .jobGroup(e.getJobGroup())
-                .jobName(e.getJobName())
-                .cronExpression(e.getCronExpression())
-                .invokeTarget(e.getInvokeTarget())
-                .concurrent(e.getConcurrent())
-                .misfirePolicy(e.getMisfirePolicy())
-                .status(e.getStatus())
-                .build();
     }
 }

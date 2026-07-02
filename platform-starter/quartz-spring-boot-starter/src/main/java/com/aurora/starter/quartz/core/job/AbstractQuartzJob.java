@@ -22,8 +22,6 @@ public abstract class AbstractQuartzJob implements Job {
 
     private static final ThreadLocal<LocalDateTime> START_TIME = new ThreadLocal<>();
 
-    private static final int DEFAULT_MAX_EXCEPTION_LENGTH = 2000;
-
     @Override
     public void execute(JobExecutionContext context) {
         JobContext job = (JobContext) context.getMergedJobDataMap().get(JobContext.class.getName());
@@ -37,16 +35,10 @@ public abstract class AbstractQuartzJob implements Job {
         }
     }
 
-    /**
-     * 执行前钩子 —— 默认仅记录开始时间.
-     */
     protected void before(JobExecutionContext context, JobContext job) {
         START_TIME.set(LocalDateTime.now());
     }
 
-    /**
-     * 子类实现具体业务逻辑.
-     */
     protected abstract void doExecute(JobExecutionContext context, JobContext job) throws Exception;
 
     private void handleAfter(JobExecutionContext context, JobContext job, Exception error) {
@@ -56,7 +48,8 @@ public abstract class AbstractQuartzJob implements Job {
             return;
         }
         try {
-            JobLogHandler handler = (JobLogHandler) context.getMergedJobDataMap().get(JobLogHandler.class.getName());
+            JobLogHandler handler = (JobLogHandler) context.getMergedJobDataMap()
+                    .get(JobLogHandler.class.getName());
             if (handler == null) {
                 log.warn("JobDataMap 中未找到 JobLogHandler，跳过日志处理 - {}", job.getJobName());
                 return;
@@ -87,7 +80,7 @@ public abstract class AbstractQuartzJob implements Job {
                 .jobMessage(job.getJobName() + " 总共耗时：" + runMs + "毫秒");
         if (error != null) {
             builder.status("1")
-                    .exceptionInfo(truncate(stackTraceOf(error), DEFAULT_MAX_EXCEPTION_LENGTH));
+                    .exceptionInfo(stackTraceOf(error));
         } else {
             builder.status("0");
         }
@@ -98,12 +91,5 @@ public abstract class AbstractQuartzJob implements Job {
         StringWriter sw = new StringWriter();
         t.printStackTrace(new PrintWriter(sw, true));
         return sw.toString();
-    }
-
-    private static String truncate(String s, int max) {
-        if (s == null) {
-            return null;
-        }
-        return s.length() <= max ? s : s.substring(0, max);
     }
 }

@@ -19,6 +19,9 @@ import org.quartz.SchedulerException;
 @RequiredArgsConstructor
 public class DefaultScheduleManager implements ScheduleManager {
 
+    /** 默认允许并发执行的标记值. */
+    private static final String CONCURRENT_ALLOW = "0";
+
     private final Scheduler scheduler;
     private final QuartzProperties properties;
     private final JobLogHandler jobLogHandler;
@@ -79,7 +82,7 @@ public class DefaultScheduleManager implements ScheduleManager {
             job.setStatus(JobStatus.NORMAL.getValue());
         }
         if (job.getConcurrent() == null || job.getConcurrent().isEmpty()) {
-            job.setConcurrent("0");
+            job.setConcurrent(CONCURRENT_ALLOW);
         }
     }
 }

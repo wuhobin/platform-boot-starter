@@ -28,10 +28,10 @@ public class QuartzProperties {
 
     @Data
     public static class Log {
-        /** 异常信息最大保留字符. */
+        /** 异常信息最大保留字符,默认 2000. */
         private int maxExceptionLength = 2000;
 
-        /** 额外跳过日志的 invokeTarget 关键字列表. */
+        /** invokeTarget 关键字列表,命中的任务不生成日志. */
         private List<String> skipList = new ArrayList<>();
     }
 }

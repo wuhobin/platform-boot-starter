@@ -5,6 +5,7 @@ import com.aurora.starter.quartz.core.job.JobContext;
 import com.aurora.starter.quartz.core.job.QuartzDisallowConcurrentExecution;
 import com.aurora.starter.quartz.core.job.QuartzJobExecution;
 import com.aurora.starter.quartz.enums.JobStatus;
+import com.aurora.starter.quartz.enums.MisfirePolicy;
 import com.aurora.starter.quartz.exception.TaskException;
 import org.quartz.CronScheduleBuilder;
 import org.quartz.CronTrigger;
@@ -23,12 +24,14 @@ import org.quartz.TriggerKey;
 public final class ScheduleUtils {
 
     private static final String TASK_CLASS_NAME_PREFIX = "TASK_CLASS_NAME";
+    /** 并发允许标记 —— 与原 aurora-scheduler 兼容. */
+    private static final String CONCURRENT_ALLOW = "0";
 
     private ScheduleUtils() {
     }
 
     private static Class<? extends Job> getQuartzJobClass(JobContext job) {
-        boolean isConcurrent = "0".equals(job.getConcurrent());
+        boolean isConcurrent = CONCURRENT_ALLOW.equals(job.getConcurrent());
         return isConcurrent ? QuartzJobExecution.class : QuartzDisallowConcurrentExecution.class;
     }
 
@@ -82,23 +85,21 @@ public final class ScheduleUtils {
         if (policy == null) {
             return cb;
         }
-        switch (policy) {
-            case "0" -> {
-                return cb;
-            }
-            case "1" -> {
-                return cb.withMisfireHandlingInstructionIgnoreMisfires();
-            }
-            case "2" -> {
-                return cb.withMisfireHandlingInstructionFireAndProceed();
-            }
-            case "3" -> {
-                return cb.withMisfireHandlingInstructionDoNothing();
-            }
-            default -> throw new TaskException(
-                    "The task misfire policy '" + job.getMisfirePolicy()
-                            + "' cannot be used in cron schedule tasks",
-                    TaskException.Code.CONFIG_ERROR);
+        if (MisfirePolicy.DEFAULT.getValue().equals(policy)) {
+            return cb;
         }
+        if (MisfirePolicy.IGNORE_MISFIRES.getValue().equals(policy)) {
+            return cb.withMisfireHandlingInstructionIgnoreMisfires();
+        }
+        if (MisfirePolicy.FIRE_AND_PROCEED.getValue().equals(policy)) {
+            return cb.withMisfireHandlingInstructionFireAndProceed();
+        }
+        if (MisfirePolicy.DO_NOTHING.getValue().equals(policy)) {
+            return cb.withMisfireHandlingInstructionDoNothing();
+        }
+        throw new TaskException(
+                "The task misfire policy '" + job.getMisfirePolicy()
+                        + "' cannot be used in cron schedule tasks",
+                TaskException.Code.CONFIG_ERROR);
     }
 }

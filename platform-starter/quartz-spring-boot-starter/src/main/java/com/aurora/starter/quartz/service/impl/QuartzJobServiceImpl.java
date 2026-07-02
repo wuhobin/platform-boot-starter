@@ -3,6 +3,7 @@ package com.aurora.starter.quartz.service.impl;
 import com.aurora.starter.quartz.core.job.JobContext;
 import com.aurora.starter.quartz.core.schedule.ScheduleManager;
 import com.aurora.starter.quartz.domain.QuartzJob;
+import com.aurora.starter.quartz.enums.JobStatus;
 import com.aurora.starter.quartz.exception.TaskException;
 import com.aurora.starter.quartz.mapper.QuartzJobMapper;
 import com.aurora.starter.quartz.service.IQuartzJobService;
@@ -24,7 +25,7 @@ public class QuartzJobServiceImpl extends ServiceImpl<QuartzJobMapper, QuartzJob
     public boolean createJob(QuartzJob job) throws SchedulerException, TaskException {
         boolean saved = save(job);
         if (saved) {
-            scheduleManager.createOrUpdateJob(toContext(job));
+            scheduleManager.createOrUpdateJob(JobContext.from(job));
             log.info("创建任务 jobId={}, jobName={}", job.getJobId(), job.getJobName());
         }
         return saved;
@@ -34,7 +35,7 @@ public class QuartzJobServiceImpl extends ServiceImpl<QuartzJobMapper, QuartzJob
     public boolean updateJob(QuartzJob job) throws SchedulerException, TaskException {
         boolean updated = updateById(job);
         if (updated) {
-            scheduleManager.createOrUpdateJob(toContext(job));
+            scheduleManager.createOrUpdateJob(JobContext.from(job));
             log.info("更新任务 jobId={}, jobName={}", job.getJobId(), job.getJobName());
         }
         return updated;
@@ -56,13 +57,21 @@ public class QuartzJobServiceImpl extends ServiceImpl<QuartzJobMapper, QuartzJob
         if (job == null) {
             return false;
         }
-        job.setStatus("1");
+        job.setStatus(JobStatus.PAUSE.getValue());
         boolean updated = updateById(job);
-        if (updated) {
-            scheduleManager.pauseJob(jobId, jobGroup);
-            log.info("暂停任务 jobId={}, jobGroup={}", jobId, jobGroup);
+        if (!updated) {
+            return false;
         }
-        return updated;
+        try {
+            scheduleManager.pauseJob(jobId, jobGroup);
+        } catch (Exception e) {
+            // 回滚 DB 状态：Quartz 失败时把 DB 恢复到正常，防止状态不一致
+            job.setStatus(JobStatus.NORMAL.getValue());
+            updateById(job);
+            throw e;
+        }
+        log.info("暂停任务 jobId={}, jobGroup={}", jobId, jobGroup);
+        return true;
     }
 
     @Override
@@ -71,13 +80,21 @@ public class QuartzJobServiceImpl extends ServiceImpl<QuartzJobMapper, QuartzJob
         if (job == null) {
             return false;
         }
-        job.setStatus("0");
+        job.setStatus(JobStatus.NORMAL.getValue());
         boolean updated = updateById(job);
-        if (updated) {
-            scheduleManager.resumeJob(jobId, jobGroup);
-            log.info("恢复任务 jobId={}, jobGroup={}", jobId, jobGroup);
+        if (!updated) {
+            return false;
         }
-        return updated;
+        try {
+            scheduleManager.resumeJob(jobId, jobGroup);
+        } catch (Exception e) {
+            // Quartz 恢复失败时回滚 DB 写入
+            job.setStatus(JobStatus.PAUSE.getValue());
+            updateById(job);
+            throw e;
+        }
+        log.info("恢复任务 jobId={}, jobGroup={}", jobId, jobGroup);
+        return true;
     }
 
     @Override
@@ -85,18 +102,5 @@ public class QuartzJobServiceImpl extends ServiceImpl<QuartzJobMapper, QuartzJob
         scheduleManager.triggerJob(jobId, jobGroup);
         log.info("立即触发任务 jobId={}, jobGroup={}", jobId, jobGroup);
         return true;
-    }
-
-    private JobContext toContext(QuartzJob e) {
-        return JobContext.builder()
-                .jobId(e.getJobId())
-                .jobGroup(e.getJobGroup())
-                .jobName(e.getJobName())
-                .cronExpression(e.getCronExpression())
-                .invokeTarget(e.getInvokeTarget())
-                .concurrent(e.getConcurrent())
-                .misfirePolicy(e.getMisfirePolicy())
-                .status(e.getStatus())
-                .build();
     }
 }

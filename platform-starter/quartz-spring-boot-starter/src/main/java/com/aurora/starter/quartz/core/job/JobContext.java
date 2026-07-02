@@ -46,4 +46,20 @@ public class JobContext implements Serializable {
 
     /** 是否跳过日志记录(替代原 redisTimer 字符串黑名单). */
     private boolean skipLog;
+
+    /**
+     * 从 {@link com.aurora.starter.quartz.domain.QuartzJob} 实体转换为运行时上下文.
+     */
+    public static JobContext from(com.aurora.starter.quartz.domain.QuartzJob e) {
+        return JobContext.builder()
+                .jobId(e.getJobId())
+                .jobGroup(e.getJobGroup())
+                .jobName(e.getJobName())
+                .cronExpression(e.getCronExpression())
+                .invokeTarget(e.getInvokeTarget())
+                .concurrent(e.getConcurrent())
+                .misfirePolicy(e.getMisfirePolicy())
+                .status(e.getStatus())
+                .build();
+    }
 }

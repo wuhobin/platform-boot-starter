@@ -1,6 +1,7 @@
 package com.aurora.starter.quartz.service;
 
 import com.aurora.starter.quartz.domain.QuartzJob;
+import com.aurora.starter.quartz.exception.TaskException;
 import com.baomidou.mybatisplus.extension.service.IService;
 import org.quartz.SchedulerException;
 
@@ -9,9 +10,9 @@ import org.quartz.SchedulerException;
  */
 public interface IQuartzJobService extends IService<QuartzJob> {
 
-    boolean createJob(QuartzJob job) throws SchedulerException, com.aurora.starter.quartz.exception.TaskException;
+    boolean createJob(QuartzJob job) throws SchedulerException, TaskException;
 
-    boolean updateJob(QuartzJob job) throws SchedulerException, com.aurora.starter.quartz.exception.TaskException;
+    boolean updateJob(QuartzJob job) throws SchedulerException, TaskException;
 
     boolean deleteJob(Long jobId, String jobGroup) throws SchedulerException;
 

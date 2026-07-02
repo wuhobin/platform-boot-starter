@@ -2,6 +2,7 @@ package com.aurora.starter.quartz.util;
 
 import com.aurora.starter.common.utils.StringUtils;
 import com.aurora.starter.quartz.core.job.JobContext;
+import org.springframework.context.ApplicationContext;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -17,7 +18,7 @@ import java.util.List;
 public final class JobInvokeUtils {
 
     /** 由 {@code QuartzAutoConfiguration} 在启动时注入. */
-    public static org.springframework.context.ApplicationContext applicationContext;
+    public static ApplicationContext applicationContext;
 
     private JobInvokeUtils() {
     }
@@ -26,6 +27,10 @@ public final class JobInvokeUtils {
      * 执行方法.
      */
     public static void invokeMethod(JobContext job) throws Exception {
+        if (applicationContext == null) {
+            throw new IllegalStateException(
+                    "JobInvokeUtils.applicationContext 未初始化，请确保 quartz-spring-boot-starter 已正确引入");
+        }
         String invokeTarget = job.getInvokeTarget();
         String beanName = getBeanName(invokeTarget);
         String methodName = getMethodName(invokeTarget);

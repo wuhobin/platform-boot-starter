@@ -44,8 +44,8 @@ public class QuartzAutoConfiguration implements ApplicationContextAware {
 
     @Bean
     @ConditionalOnMissingBean
-    public JobLogHandler jobLogHandler(QuartzJobLogMapper logMapper) {
-        return new DbJobLogHandler(logMapper);
+    public JobLogHandler jobLogHandler(QuartzJobLogMapper logMapper, QuartzProperties properties) {
+        return new DbJobLogHandler(logMapper, properties);
     }
 
     @Bean
