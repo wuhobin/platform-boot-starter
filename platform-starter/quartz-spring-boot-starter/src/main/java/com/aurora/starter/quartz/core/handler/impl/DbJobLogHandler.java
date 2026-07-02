@@ -1,4 +1,4 @@
-package com.aurora.starter.quartz.handler.impl;
+package com.aurora.starter.quartz.core.handler.impl;
 
 import com.aurora.starter.quartz.config.QuartzProperties;
 import com.aurora.starter.quartz.core.handler.JobLogHandler;

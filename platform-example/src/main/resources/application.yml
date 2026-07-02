@@ -132,10 +132,10 @@ platform:
         - name: productCache
           max-size: 2000
           default-ttl: 30s
-
   quartz:
     log:
       skip-list: exampleTask.doSomething()
+    auto-init-table: true
 
 
 # Knife4j 官方增强配置

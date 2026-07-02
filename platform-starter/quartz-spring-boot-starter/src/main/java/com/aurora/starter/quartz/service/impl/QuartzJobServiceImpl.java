@@ -7,6 +7,7 @@ import com.aurora.starter.quartz.enums.JobStatus;
 import com.aurora.starter.quartz.exception.TaskException;
 import com.aurora.starter.quartz.mapper.QuartzJobMapper;
 import com.aurora.starter.quartz.service.IQuartzJobService;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.SchedulerException;
@@ -23,6 +24,14 @@ public class QuartzJobServiceImpl extends ServiceImpl<QuartzJobMapper, QuartzJob
 
     @Override
     public boolean createJob(QuartzJob job) throws SchedulerException, TaskException {
+        // 业务唯一性校验:invokeTarget 不能重复
+        long count = count(new LambdaQueryWrapper<QuartzJob>()
+                .eq(QuartzJob::getInvokeTarget, job.getInvokeTarget()));
+        if (count > 0) {
+            throw new TaskException(
+                    "invokeTarget 已存在: " + job.getInvokeTarget(),
+                    TaskException.Code.TASK_EXISTS);
+        }
         boolean saved = save(job);
         if (saved) {
             scheduleManager.createOrUpdateJob(JobContext.from(job));
@@ -33,6 +42,15 @@ public class QuartzJobServiceImpl extends ServiceImpl<QuartzJobMapper, QuartzJob
 
     @Override
     public boolean updateJob(QuartzJob job) throws SchedulerException, TaskException {
+        // 业务唯一性校验:不能改成其他任务已占用的 invokeTarget
+        long count = count(new LambdaQueryWrapper<QuartzJob>()
+                .eq(QuartzJob::getInvokeTarget, job.getInvokeTarget())
+                .ne(QuartzJob::getJobId, job.getJobId()));
+        if (count > 0) {
+            throw new TaskException(
+                    "invokeTarget 已被其他任务占用: " + job.getInvokeTarget(),
+                    TaskException.Code.TASK_EXISTS);
+        }
         boolean updated = updateById(job);
         if (updated) {
             scheduleManager.createOrUpdateJob(JobContext.from(job));

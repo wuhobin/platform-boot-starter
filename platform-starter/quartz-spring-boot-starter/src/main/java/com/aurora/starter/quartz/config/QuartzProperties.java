@@ -26,6 +26,9 @@ public class QuartzProperties {
     /** 日志相关配置. */
     private Log log = new Log();
 
+    /** 是否自动建表,默认 false.设置为 true 时启动会执行 CREATE TABLE IF NOT EXISTS. */
+    private boolean autoInitTable = false;
+
     @Data
     public static class Log {
         /** 异常信息最大保留字符,默认 2000. */
