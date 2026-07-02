@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>com.aurora</groupId>
+        <groupId>io.github.wuhobin</groupId>
         <artifactId>platform-starter</artifactId>
         <version>${revision}</version>
         <relativePath>../pom.xml</relativePath>
@@ -18,7 +18,7 @@
     <dependencies>
         <!-- 平台通用工具 -->
         <dependency>
-            <groupId>com.aurora</groupId>
+            <groupId>io.github.wuhobin</groupId>
             <artifactId>platform-common</artifactId>
         </dependency>
 
