@@ -10,7 +10,30 @@
     <name>${project.artifactId}</name>
 
     <description>Platform Parent公共模块</description>
+    <url>https://github.com/wuhobin/platform-boot-starter</url>
 
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <id>wuhobin</id>
+            <name>wuhobin</name>
+            <email>1289066006@qq.com</email>          <!-- 改成你的真实邮箱 -->
+            <timezone>Asia/Shanghai</timezone>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:https://github.com/wuhobin/platform-boot-starter.git</connection>
+        <developerConnection>scm:git:git@github.com:wuhobin/platform-boot-starter.git</developerConnection>
+        <url>https://github.com/wuhobin/platform-boot-starter</url>
+    </scm>
 
     <modules>
         <!-- 公共基础包 -->
@@ -80,6 +103,62 @@
         </resources>
         <plugins>
             <plugin>
+                <groupId>org.sonatype.central</groupId>
+                <artifactId>central-publishing-maven-plugin</artifactId>
+                <version>0.7.0</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <publishingServerId>wuhobin</publishingServerId>
+                    <tokenAuth>true</tokenAuth>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.3.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.8.0</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <doclint>none</doclint>   <!-- 跳过 javadoc 语法严格检查，避免因中文字符 build 失败 -->
+                    <quiet>true</quiet>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>3.2.7</version>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>${maven.plugin.version}</version>
@@ -122,12 +201,6 @@
                     <processPlugins>false</processPlugins>
                 </configuration>
             </plugin>
-            <!--
-                flatten-maven-plugin：把 ${revision} 占位符在 install/deploy 时
-                物化成真实版本号写入 .flattened-pom.xml，避免下游消费者解析失败。
-                resolveCiFriendliesOnly 模式只解析 CI-friendly 变量（revision/sha1/changelist），
-                其它内容（modules、dependencyManagement 等）保持不变，侵入最小。
-            -->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>flatten-maven-plugin</artifactId>

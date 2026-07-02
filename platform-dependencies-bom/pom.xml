@@ -83,6 +83,18 @@
                 <version>${revision}</version>
             </dependency>
 
+            <dependency>
+                <groupId>com.aurora</groupId>
+                <artifactId>sa-token-spring-boot-starter</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.aurora</groupId>
+                <artifactId>quartz-spring-boot-starter</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
             <!-- SpringBoot的依赖配置-->
             <dependency>
                 <groupId>org.springframework.boot</groupId>
