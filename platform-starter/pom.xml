@@ -25,6 +25,7 @@
         <module>xlock-spring-boot-starter</module>
         <module>sa-token-spring-boot-starter</module>
         <module>oss-spring-boot-starter</module>
+        <module>quartz-spring-boot-starter</module>
     </modules>
 
     <build>

@@ -1,4 +1,4 @@
-package com.aurora.example.controller.config.security;
+package com.aurora.example.config;
 
 import com.aurora.starter.security.account.AccountType;
 import com.aurora.starter.security.account.AccountTypeDefinition;

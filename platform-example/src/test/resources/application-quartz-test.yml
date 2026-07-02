@@ -1,0 +1,26 @@
+spring:
+  quartz:
+    job-store-type: memory
+    properties:
+      org:
+        quartz:
+          threadPool:
+            threadCount: 2
+  sql:
+    init:
+      mode: never
+
+platform:
+  quartz:
+    enabled: true
+    default-job-group: DEFAULT
+    default-misfire-policy: DEFAULT
+  redis:
+    bloom-filter:
+      enabled: false
+    two-level-cache:
+      enabled: false
+
+logging:
+  level:
+    com.aurora.starter.quartz: DEBUG

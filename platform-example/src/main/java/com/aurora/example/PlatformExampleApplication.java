@@ -8,9 +8,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 /**
  * 示例工程启动类.
  *
- * <p>使用 {@code scanBasePackageClasses} 把 {@link PlatformWebMvcMarker} 所在的
- * {@code com.aurora.starter.webmvc} 包加入组件扫描，使 webmvc 通用件的
- * {@code GlobalExceptionHandler} / {@code TraceIdFilter} / {@code RequestLogFilter} 等 Bean 生效。</p>
+ * <p>使用 {@code scanBasePackageClasses} 把 webmvc / quartz 等 starter 的组件纳入扫描，
+ * 使 {@code GlobalExceptionHandler} / {@code IQuartzJobService} 等 Bean 生效。</p>
  *
  * @author whb
  */
