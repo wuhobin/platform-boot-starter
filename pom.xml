@@ -55,7 +55,7 @@
         <maven.plugin.jar.version>3.3.0</maven.plugin.jar.version>
         <maven.plugin.update.versions.version>2.18.0</maven.plugin.update.versions.version>
         <maven.plugin.flatten.version>1.6.0</maven.plugin.flatten.version>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <gpg.skip>true</gpg.skip>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <revision>1.0.0-SNAPSHOT</revision>
 
@@ -157,6 +157,9 @@
                         </goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <skip>${gpg.skip}</skip>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
