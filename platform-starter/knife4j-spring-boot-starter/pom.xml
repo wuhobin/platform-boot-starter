@@ -9,6 +9,7 @@
     </parent>
 
     <artifactId>knife4j-spring-boot-starter</artifactId>
+    <name>Knife4j Spring Boot Starter</name>
     <description>Spring starter --- API 文档 Knife4j（OpenAPI3 + Jakarta）模块</description>
 
     <dependencies>

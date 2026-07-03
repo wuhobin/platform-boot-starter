@@ -9,6 +9,7 @@
     </parent>
 
     <artifactId>platform-common</artifactId>
+    <name>Platform Common</name>
     <description>Platform---common基础模块</description>
 
     <dependencies>

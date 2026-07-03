@@ -9,6 +9,7 @@
     </parent>
 
     <artifactId>oss-spring-boot-starter</artifactId>
+    <name>OSS Spring Boot Starter</name>
     <description>Spring starter --- 通用文件存储模块（基于 x-file-storage）</description>
 
     <dependencies>

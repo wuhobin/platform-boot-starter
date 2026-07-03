@@ -9,6 +9,7 @@
     </parent>
 
     <artifactId>mybatis-plus-spring-boot-starter</artifactId>
+    <name>MyBatis-Plus Spring Boot Starter</name>
     <description>Spring starter ---数据访问层 Mybatis-Plus模块</description>
 
     <dependencies>

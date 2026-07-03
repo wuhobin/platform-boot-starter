@@ -10,6 +10,7 @@
     </parent>
 
     <artifactId>quartz-spring-boot-starter</artifactId>
+    <name>Quartz Spring Boot Starter</name>
     <description>Spring starter --- 通用 Quartz 定时任务调度模块（任务抽象 + ScheduleManager + JobLogHandler SPI）</description>
 
     <dependencies>

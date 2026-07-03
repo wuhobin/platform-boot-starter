@@ -9,6 +9,7 @@
     </parent>
 
     <artifactId>platform-webmvc</artifactId>
+    <name>Platform Web MVC</name>
     <description>Platform --- Web MVC 通用件（统一响应、业务异常、全局异常处理、TraceId 透传、请求日志）</description>
 
     <dependencies>

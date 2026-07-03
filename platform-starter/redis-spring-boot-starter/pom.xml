@@ -9,6 +9,7 @@
     </parent>
 
     <artifactId>redis-spring-boot-starter</artifactId>
+    <name>Redis Spring Boot Starter</name>
     <description>Spring starter --- Redis 数据缓存模块（Lettuce）</description>
 
     <dependencies>

@@ -9,6 +9,7 @@
     </parent>
 
     <artifactId>xlock-spring-boot-starter</artifactId>
+    <name>XLock Spring Boot Starter</name>
     <description>Spring starter --- Redisson 分布式锁模块</description>
 
     <dependencies>
