@@ -56,7 +56,7 @@
         <maven.plugin.update.versions.version>2.18.0</maven.plugin.update.versions.version>
         <maven.plugin.flatten.version>1.6.0</maven.plugin.flatten.version>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <revision>1.0.0</revision>
+        <revision>1.0.0-SNAPSHOT</revision>
 
         <!-- Spring Boot -->
         <spring.boot.version>3.5.0</spring.boot.version>

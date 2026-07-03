@@ -58,3 +58,133 @@ mvn -pl platform-starter/quartz-spring-boot-starter -am install -DskipTests
 - 版本号通过 `${revision}` 占位符统一注入，子模块 POM 不写死版本。
 - `platform-example` 通过本地仓库依赖 starter，**改完 starter 必须重新 `install`** 才能在示例工程生效。
 - 编译器开启了 `-parameters`，可依赖参数名反射。
+
+## Maven Central 坐标
+
+已发布至 [Maven Central](https://central.sonatype.com/namespace/io.github.wuhobin)，`groupId` 为 `io.github.wuhobin`，版本号通过 BOM 统一管理。
+
+### 引入 BOM（推荐）
+
+在业务工程的 `pom.xml` 中导入平台 BOM，管理所有 starter 版本：
+
+```xml
+<dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>io.github.wuhobin</groupId>
+            <artifactId>platform-dependencies-bom</artifactId>
+            <version>1.0.0</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
+```
+
+之后引用各 starter 无需写版本号：
+
+```xml
+<dependencies>
+    <dependency>
+        <groupId>io.github.wuhobin</groupId>
+        <artifactId>quartz-spring-boot-starter</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>io.github.wuhobin</groupId>
+        <artifactId>mybatis-plus-spring-boot-starter</artifactId>
+    </dependency>
+</dependencies>
+```
+
+### 继承 parent
+
+如果业务工程需要复用平台 POM 的公共配置（JDK 21、`-parameters` 编译参数、Lombok、Maven 插件等），可继承 `platform-parent`：
+
+```xml
+<parent>
+    <groupId>io.github.wuhobin</groupId>
+    <artifactId>platform-parent</artifactId>
+    <version>1.0.0</version>
+    <relativePath/>
+</parent>
+```
+
+> `platform-parent` 内部已通过 `<dependencyManagement>` 导入 `platform-dependencies-bom`，继承后业务方**不需**再单独引入 BOM。
+
+### 完整示例
+
+以下是一个使用 MyBatis-Plus + Quartz 定时任务 + Knife4j 接口文档的业务工程 POM：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- 继承 platform-parent，自动获得 JDK 21、Lombok、编译插件等配置 -->
+    <parent>
+        <groupId>io.github.wuhobin</groupId>
+        <artifactId>platform-parent</artifactId>
+        <version>1.0.0</version>
+        <relativePath/>
+    </parent>
+
+    <artifactId>my-business-app</artifactId>
+    <name>My Business App</name>
+
+    <dependencies>
+        <!-- Quartz 定时任务 -->
+        <dependency>
+            <groupId>io.github.wuhobin</groupId>
+            <artifactId>quartz-spring-boot-starter</artifactId>
+        </dependency>
+
+        <!-- MyBatis-Plus 数据访问 -->
+        <dependency>
+            <groupId>io.github.wuhobin</groupId>
+            <artifactId>mybatis-plus-spring-boot-starter</artifactId>
+        </dependency>
+
+        <!-- Knife4j 接口文档 -->
+        <dependency>
+            <groupId>io.github.wuhobin</groupId>
+            <artifactId>knife4j-spring-boot-starter</artifactId>
+        </dependency>
+
+        <!-- MySQL 驱动 -->
+        <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>
+```
+
+> 所有 `io.github.wuhobin` 的依赖都**不需要写版本号**（由 `platform-parent` 通过 `platform-dependencies-bom` 统一管理）。
+
+### 各模块独立坐标
+
+如果不想用 BOM，可以逐个引入（需要写版本号）：
+
+| 模块 | artifactId |
+|------|------|
+| 公共基础 | `platform-common` |
+| Web MVC 通用件 | `platform-webmvc` |
+| MyBatis-Plus | `mybatis-plus-spring-boot-starter` |
+| Knife4j | `knife4j-spring-boot-starter` |
+| Redis 缓存 | `redis-spring-boot-starter` |
+| 分布式锁 | `xlock-spring-boot-starter` |
+| Sa-Token | `sa-token-spring-boot-starter` |
+| 对象存储 | `oss-spring-boot-starter` |
+| 定时任务 | `quartz-spring-boot-starter` |
