@@ -203,7 +203,7 @@
                 <version>${maven.plugin.flatten.version}</version>
                 <configuration>
                     <updatePomFile>true</updatePomFile>
-                    <flattenMode>ossrh</flattenMode>
+                    <flattenMode>bom</flattenMode>
                 </configuration>
                 <executions>
                     <execution>

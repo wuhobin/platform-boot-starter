@@ -20,7 +20,7 @@ public class QuartzJobLog implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /** 日志 ID. */
-    @TableId(type = IdType.ASSIGN_ID)
+    @TableId(type = IdType.AUTO)
     private Long logId;
 
     /** 任务 ID. */

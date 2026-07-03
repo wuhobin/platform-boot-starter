@@ -45,7 +45,7 @@ public class QuartzAutoConfiguration implements ApplicationContextAware {
 
     private static final String DDL_QUARTZ_JOB = """
             CREATE TABLE IF NOT EXISTS `quartz_job` (
-                `job_id`          BIGINT       NOT NULL COMMENT '任务ID',
+                `job_id`          BIGINT       NOT NULL AUTO_INCREMENT COMMENT '任务ID',
                 `job_name`        VARCHAR(64)  NOT NULL COMMENT '任务名称',
                 `job_group`       VARCHAR(64)           DEFAULT 'DEFAULT' COMMENT '任务分组',
                 `cron_expression` VARCHAR(255) NOT NULL COMMENT 'Cron表达式',
@@ -59,7 +59,7 @@ public class QuartzAutoConfiguration implements ApplicationContextAware {
 
     private static final String DDL_QUARTZ_JOB_LOG = """
             CREATE TABLE IF NOT EXISTS `quartz_job_log` (
-                `log_id`         BIGINT       NOT NULL COMMENT '日志ID',
+                `log_id`         BIGINT       NOT NULL AUTO_INCREMENT COMMENT '日志ID',
                 `job_id`         BIGINT                DEFAULT NULL COMMENT '任务ID',
                 `job_name`       VARCHAR(64)           DEFAULT NULL COMMENT '任务名称',
                 `job_group`      VARCHAR(64)           DEFAULT NULL COMMENT '任务分组',
