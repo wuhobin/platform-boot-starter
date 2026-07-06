@@ -1,6 +1,7 @@
 package com.aurora.starter.security.context;
 
 import cn.dev33.satoken.SaManager;
+import cn.dev33.satoken.session.SaSession;
 import cn.dev33.satoken.stp.SaTokenInfo;
 import cn.dev33.satoken.stp.StpUtil;
 import com.aurora.starter.security.account.AccountType;
@@ -192,5 +193,66 @@ public final class SecurityUtils {
 
     public static SaTokenInfo getTokenInfoAs(AccountType accountType) {
         return SaManager.getStpLogic(accountType.getCode()).getTokenInfo();
+    }
+
+    /* ============ Session 属性 ============
+     * 封装 {@code StpUtil.getSession().set(...)} / {@code .get(...)}。
+     * 业务方最常用：登录后塞用户信息、租户 ID、权限快照等到 session，
+     * 后续请求按 key 取，避免每次查库。
+     */
+
+    /** 获取当前 SaSession（按需新建）。 */
+    public static SaSession getSession() {
+        assertNoMultiAccount();
+        return StpUtil.getSession();
+    }
+
+    /** 指定账号体系下获取 SaSession（按需新建）。 */
+    public static SaSession getSessionAs(AccountType accountType) {
+        return SaManager.getStpLogic(accountType.getCode()).getSession();
+    }
+
+    /** 在当前 Session 写入属性。 */
+    public static void setSessionAttribute(String key, Object value) {
+        assertNoMultiAccount();
+        StpUtil.getSession().set(key, value);
+    }
+
+    /** 指定账号体系下，在 Session 写入属性。 */
+    public static void setSessionAttributeAs(AccountType accountType, String key, Object value) {
+        SaManager.getStpLogic(accountType.getCode()).getSession().set(key, value);
+    }
+
+    /** 从当前 Session 读取属性；无值返回 {@code null}。 */
+    public static Object getSessionAttribute(String key) {
+        assertNoMultiAccount();
+        return StpUtil.getSession().get(key);
+    }
+
+    /** 从当前 Session 读取属性；无值返回指定的 defaultValue。 */
+    public static Object getSessionAttribute(String key, Object defaultValue) {
+        assertNoMultiAccount();
+        return StpUtil.getSession().get(key, defaultValue);
+    }
+
+    /** 指定账号体系下，从 Session 读取属性；无值返回 {@code null}。 */
+    public static Object getSessionAttributeAs(AccountType accountType, String key) {
+        return SaManager.getStpLogic(accountType.getCode()).getSession().get(key);
+    }
+
+    /** 指定账号体系下，从 Session 读取属性；无值返回指定的 defaultValue。 */
+    public static Object getSessionAttributeAs(AccountType accountType, String key, Object defaultValue) {
+        return SaManager.getStpLogic(accountType.getCode()).getSession().get(key, defaultValue);
+    }
+
+    /** 删除当前 Session 上的属性。 */
+    public static void removeSessionAttribute(String key) {
+        assertNoMultiAccount();
+        StpUtil.getSession().delete(key);
+    }
+
+    /** 指定账号体系下，删除 Session 上的属性。 */
+    public static void removeSessionAttributeAs(AccountType accountType, String key) {
+        SaManager.getStpLogic(accountType.getCode()).getSession().delete(key);
     }
 }
