@@ -27,7 +27,6 @@ public class PageUtils {
      * @return MyBatis-Plus Page 对象，可直接传给 mapper.selectPage
      */
     public static <T> Page<T> buildPage(PageParam pageParam) {
-        log.info("pageParam {}", JSONUtil.toJsonStr(pageParam));
         if (pageParam == null) {
             return new Page<>(PageParam.DEFAULT_PAGE, PageParam.DEFAULT_SIZE);
         }
