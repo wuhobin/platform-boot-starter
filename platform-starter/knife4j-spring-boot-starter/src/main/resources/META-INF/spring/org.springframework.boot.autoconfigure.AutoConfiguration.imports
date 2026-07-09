@@ -1,1 +1,1 @@
-com.aurora.starter.knife4j.config.Knife4jAutoConfig
+com.aurora.starter.knife4j.config.SwaggerAutoConfiguration
