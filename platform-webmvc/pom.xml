@@ -19,10 +19,23 @@
             <artifactId>platform-common</artifactId>
         </dependency>
 
-        <!-- Servlet Web 环境（GlobalExceptionHandler、Filter 必需） -->
+        <!-- 统一日志：Log4j2（版本由 platform-dependencies-bom 管控，BOM 已统一排除 spring-boot-starter-logging） -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-log4j2</artifactId>
+        </dependency>
+
+        <!-- Servlet Web 环境（GlobalExceptionHandler、Filter 必需）
+             BOM 已对该 artifact 排除 spring-boot-starter-logging；此处冗余声明便于模块自文档化 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-logging</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- knife4j starter（提供 OpenAPI 3 @Schema 注解，供 Result 等公共模型标注） -->

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    platform-example 默认日志配置（与 platform-webmvc 默认相同，便于示例工程独立调优）。
+
+    说明：
+      - 文件名必须为 log4j2-spring.xml（不是 log4j2.xml）以走 Spring Boot 加载优先路径。
+      - %X{traceId:-} 消费 TraceIdFilter 写入 MDC 的 traceId；缺省占位":-"保证无 traceId 时不抛错。
+      - LOG_PATH 同时回退到 Spring 的 logging.file.path；logging.level.* 由 application.yml 控制。
+-->
+<Configuration status="WARN">
+    <Properties>
+        <Property name="LOG_PATH">${sys:logging.file.path:-./logs}</Property>
+        <Property name="PATTERN">%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level [%X{traceId:-}] %logger{36} - %msg%n</Property>
+    </Properties>
+
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="${PATTERN}"/>
+        </Console>
+
+        <RollingFile name="InfoFile"
+                     fileName="${LOG_PATH}/info.log"
+                     filePattern="${LOG_PATH}/info.%d{yyyy-MM-dd}.%i.log.gz">
+            <PatternLayout pattern="${PATTERN}"/>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="50MB"/>
+                <TimeBasedTriggeringPolicy interval="1"/>
+            </Policies>
+            <DefaultRolloverStrategy max="30"/>
+            <LevelRangeFilter minLevel="INFO" maxLevel="WARN" onMatch="ACCEPT" onMismatch="DENY"/>
+        </RollingFile>
+
+        <RollingFile name="ErrorFile"
+                     fileName="${LOG_PATH}/error.log"
+                     filePattern="${LOG_PATH}/error.%d{yyyy-MM-dd}.%i.log.gz">
+            <PatternLayout pattern="${PATTERN}"/>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="50MB"/>
+                <TimeBasedTriggeringPolicy interval="1"/>
+            </Policies>
+            <DefaultRolloverStrategy max="30"/>
+            <LevelRangeFilter minLevel="ERROR" maxLevel="ERROR" onMatch="ACCEPT" onMismatch="DENY"/>
+        </RollingFile>
+    </Appenders>
+
+    <Loggers>
+        <Root level="INFO">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="InfoFile"/>
+            <AppenderRef ref="ErrorFile"/>
+        </Root>
+    </Loggers>
+</Configuration>

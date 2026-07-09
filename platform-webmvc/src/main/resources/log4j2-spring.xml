@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    platform-webmvc 默认日志配置。
+
+    注意：
+      - 文件名必须为 log4j2-spring.xml（不是 log4j2.xml），Spring Boot
+        才会通过 -spring 命名约定优先加载并支持 ${spring.*} 占位符解析。
+      - %X{traceId:-} 消费 webmvc TraceIdFilter 写入 MDC 的 traceId；
+        未配置时显示为空（":-" 即缺省占位）。
+      - LOG_PATH 同时回退到 Spring 的 logging.file.path，该字段由
+        application.yml 中的 logging.file.path（dev/prod profile）
+        经 Spring Boot 的 Log4j2LoggingSystem 映射到系统属性。
+      - 下游业务工程可在自己 src/main/resources/log4j2-spring.xml
+        中按 Logger name 路由或调级别；同名文件以可执行模块的 classpath
+        为准，避免直接修改本文件。
+-->
+<Configuration status="WARN">
+    <Properties>
+        <Property name="LOG_PATH">${sys:logging.file.path:-./logs}</Property>
+        <Property name="PATTERN">%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level [%X{traceId:-}] %logger{36} - %msg%n</Property>
+    </Properties>
+
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="${PATTERN}"/>
+        </Console>
+
+        <RollingFile name="InfoFile"
+                     fileName="${LOG_PATH}/info.log"
+                     filePattern="${LOG_PATH}/info.%d{yyyy-MM-dd}.%i.log.gz">
+            <PatternLayout pattern="${PATTERN}"/>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="50MB"/>
+                <TimeBasedTriggeringPolicy interval="1"/>
+            </Policies>
+            <DefaultRolloverStrategy max="30"/>
+            <LevelRangeFilter minLevel="INFO" maxLevel="WARN" onMatch="ACCEPT" onMismatch="DENY"/>
+        </RollingFile>
+
+        <RollingFile name="ErrorFile"
+                     fileName="${LOG_PATH}/error.log"
+                     filePattern="${LOG_PATH}/error.%d{yyyy-MM-dd}.%i.log.gz">
+            <PatternLayout pattern="${PATTERN}"/>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="50MB"/>
+                <TimeBasedTriggeringPolicy interval="1"/>
+            </Policies>
+            <DefaultRolloverStrategy max="30"/>
+            <LevelRangeFilter minLevel="ERROR" maxLevel="ERROR" onMatch="ACCEPT" onMismatch="DENY"/>
+        </RollingFile>
+    </Appenders>
+
+    <Loggers>
+        <!--
+            默认 Root：INFO 级别同时输出到 Console + InfoFile + ErrorFile。
+            下游工程可在自己的 log4j2-spring.xml 中按 Logger 名字段调级别或换 appender。
+        -->
+        <Root level="INFO">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="InfoFile"/>
+            <AppenderRef ref="ErrorFile"/>
+        </Root>
+    </Loggers>
+</Configuration>

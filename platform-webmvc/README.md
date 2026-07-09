@@ -171,7 +171,13 @@ throw new BizException(UserBizCode.USER_NOT_FOUND);
 
 ### 日志输出 traceId
 
-logback 配置 pattern 中加 `%X{traceId}`：
+`platform-webmvc` 默认使用 **Log4j2**（`src/main/resources/log4j2-spring.xml`），pattern 中已包含 `%X{traceId:-}`，下游工程无需自己配置：
+
+```xml
+<Property name="PATTERN">%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level [%X{traceId:-}] %logger{36} - %msg%n</Property>
+```
+
+如果业务工程仍在用 Logback（旧工程未升级到 Log4j2），配置 pattern 中加 `%X{traceId}`：
 
 ```xml
 <pattern>%d{HH:mm:ss.SSS} [%thread] [%X{traceId}] %-5level %logger{36} - %msg%n</pattern>

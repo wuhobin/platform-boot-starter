@@ -25,7 +25,7 @@
             <artifactId>mybatis-spring</artifactId>
         </dependency>
 
-        <!-- Mybatis Plus -->
+        <!-- Mybatis Plus（BOM 已统一排除 spring-boot-starter-logging 与 logback-classic） -->
         <dependency>
             <groupId>com.baomidou</groupId>
             <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
@@ -33,10 +33,6 @@
                 <exclusion>
                     <groupId>org.mybatis</groupId>
                     <artifactId>mybatis-spring</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>ch.qos.logback</groupId>
-                    <artifactId>logback-classic</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
