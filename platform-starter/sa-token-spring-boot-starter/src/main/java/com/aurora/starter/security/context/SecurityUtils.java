@@ -109,9 +109,18 @@ public final class SecurityUtils {
         return SaManager.getStpLogic(accountType.getCode()).getLoginIdAsString();
     }
 
+    public static int getLoginIdAsIntAs(AccountType accountType) {
+        return SaManager.getStpLogic(accountType.getCode()).getLoginIdAsInt();
+    }
+
     public static long getLoginIdAsLong() {
         assertNoMultiAccount();
         return StpUtil.getLoginIdAsLong();
+    }
+
+    public static int getLoginIdAsInt() {
+        assertNoMultiAccount();
+        return StpUtil.getLoginIdAsInt();
     }
 
     public static String getLoginIdAsString() {
@@ -171,6 +180,15 @@ public final class SecurityUtils {
     public static void kickout(Object userId) {
         assertNoMultiAccount();
         StpUtil.kickout(userId);
+    }
+
+    public static void logoutByTokenValue(String tokenValue) {
+        assertNoMultiAccount();
+        StpUtil.logoutByTokenValue(tokenValue);
+    }
+
+    public static void logoutByTokenValueAs(AccountType accountType, String tokenValue) {
+        SaManager.getStpLogic(accountType.getCode()).logoutByTokenValue(tokenValue);
     }
 
     public static void kickoutAs(AccountType accountType, Object userId) {

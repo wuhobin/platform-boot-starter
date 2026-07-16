@@ -1,6 +1,7 @@
 package com.aurora.starter.webmvc.filter;
 
 import com.aurora.starter.webmvc.domain.log.RequestLogPathExcludes;
+import com.aurora.starter.webmvc.utils.ServletUtils;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -10,22 +11,13 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
-import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
 /**
- * 请求日志 Filter.
- *
- * <p>输出格式：{@code method={} uri={} status={} duration={}ms ip={}}。
- * traceId 由 MDC 自动带出（依赖 logback/log4j2 的 pattern 已配置 %X{traceId}）。</p>
- *
- * <p>继承 {@link OncePerRequestFilter} 避免 forward/include 重复日志。</p>
- *
- * <p>顺序 {@link Ordered#HIGHEST_PRECEDENCE} + 100，晚于 {@link TraceIdFilter}。</p>
- *
- * @author whb
+ * Logs one summary line for each non-static HTTP request.
+ * Trace IDs are rendered by the logging pattern from MDC.
  */
 @Slf4j
 @Component
@@ -38,7 +30,6 @@ public class RequestLogFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
         String uri = request.getRequestURI();
-
         if (skip(uri)) {
             chain.doFilter(request, response);
             return;
@@ -51,7 +42,7 @@ public class RequestLogFilter extends OncePerRequestFilter {
             long duration = System.currentTimeMillis() - start;
             log.info("method={} uri={} status={} duration={}ms ip={}",
                     request.getMethod(), uri, response.getStatus(),
-                    duration, clientIp(request));
+                    duration, ServletUtils.getClientIp(request));
         }
     }
 
@@ -68,21 +59,5 @@ public class RequestLogFilter extends OncePerRequestFilter {
             }
         }
         return false;
-    }
-
-    /**
-     * IP 取值顺序：X-Forwarded-For 首段 → X-Real-IP → request.getRemoteAddr().
-     */
-    private static String clientIp(HttpServletRequest request) {
-        String xff = request.getHeader("X-Forwarded-For");
-        if (StringUtils.hasText(xff)) {
-            int comma = xff.indexOf(',');
-            return (comma > 0 ? xff.substring(0, comma) : xff).trim();
-        }
-        String xri = request.getHeader("X-Real-IP");
-        if (StringUtils.hasText(xri)) {
-            return xri.trim();
-        }
-        return request.getRemoteAddr();
     }
 }
