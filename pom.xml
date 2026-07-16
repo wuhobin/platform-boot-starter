@@ -53,6 +53,7 @@
         <maven.compiler.target>21</maven.compiler.target>
         <maven.plugin.version>3.13.0</maven.plugin.version>
         <maven.plugin.jar.version>3.3.0</maven.plugin.jar.version>
+        <maven.plugin.surefire.version>3.5.4</maven.plugin.surefire.version>
         <maven.plugin.update.versions.version>2.18.0</maven.plugin.update.versions.version>
         <maven.plugin.flatten.version>1.6.0</maven.plugin.flatten.version>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -89,6 +90,20 @@
 
     <build>
         <finalName>${project.artifactId}-${project.version}</finalName>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                    <version>${spring.boot.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>${maven.plugin.surefire.version}</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
@@ -203,7 +218,7 @@
                 <version>${maven.plugin.flatten.version}</version>
                 <configuration>
                     <updatePomFile>true</updatePomFile>
-                    <flattenMode>bom</flattenMode>
+                    <flattenMode>resolveCiFriendliesOnly</flattenMode>
                 </configuration>
                 <executions>
                     <execution>

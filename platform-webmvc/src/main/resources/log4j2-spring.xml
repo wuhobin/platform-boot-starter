@@ -5,8 +5,8 @@
     注意：
       - 文件名必须为 log4j2-spring.xml（不是 log4j2.xml），Spring Boot
         才会通过 -spring 命名约定优先加载并支持 ${spring.*} 占位符解析。
-      - %X{traceId:-} 消费 webmvc TraceIdFilter 写入 MDC 的 traceId；
-        未配置时显示为空（":-" 即缺省占位）。
+      - %X{traceId} 消费 webmvc TraceIdFilter 写入 MDC 的 traceId；
+        未配置时显示为空。
       - LOG_PATH 同时回退到 Spring 的 logging.file.path，该字段由
         application.yml 中的 logging.file.path（dev/prod profile）
         经 Spring Boot 的 Log4j2LoggingSystem 映射到系统属性。
@@ -17,7 +17,7 @@
 <Configuration status="WARN">
     <Properties>
         <Property name="LOG_PATH">${sys:logging.file.path:-./logs}</Property>
-        <Property name="PATTERN">%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level [%X{traceId:-}] %logger{36} - %msg%n</Property>
+        <Property name="PATTERN">%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level [%X{traceId}] %logger{36} - %msg%n</Property>
     </Properties>
 
     <Appenders>

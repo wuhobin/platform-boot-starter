@@ -1,5 +1,6 @@
 package com.aurora.starter.webmvc.domain.response;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.aurora.starter.webmvc.constants.HttpStatus;
 import com.aurora.starter.webmvc.exception.BizCode;
 import com.aurora.starter.webmvc.constants.TraceConstants;
@@ -9,6 +10,8 @@ import lombok.NoArgsConstructor;
 import org.slf4j.MDC;
 
 import java.io.Serializable;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * 接口统一返回对象.
@@ -25,7 +28,7 @@ public class Result<T> implements Serializable {
 
     private static final long serialVersionUID = -5031098257303676979L;
 
-    private static final String SUCCESS_MSG = "操作成功";
+    private static final String SUCCESS_MSG = "success";
 
     private static final String ERROR_MSG = "操作失败";
 
@@ -33,7 +36,7 @@ public class Result<T> implements Serializable {
     private int code;
 
     @Schema(description = "提示信息")
-    private String msg;
+    private String message;
 
     @Schema(description = "数据")
     private T data;
@@ -41,17 +44,43 @@ public class Result<T> implements Serializable {
     @Schema(description = "链路追踪 Id")
     private String traceId;
 
-    private Result(int code, String msg) {
+    @Schema(description = "额外信息")
+    private Map<String, Object> extra = new LinkedHashMap<>();
+
+    private Result(int code, String message) {
         this.code = code;
-        this.msg = msg;
+        this.message = message;
         this.traceId = MDC.get(TraceConstants.MDC_KEY);
     }
 
-    private Result(int code, String msg, T data) {
+    private Result(int code, String message, T data) {
         this.code = code;
-        this.msg = msg;
+        this.message = message;
         this.data = data;
         this.traceId = MDC.get(TraceConstants.MDC_KEY);
+    }
+
+    public Result<T> putExtra(String key, Object value) {
+        this.extra.put(key, value);
+        return this;
+    }
+
+    /**
+     * @deprecated use the canonical {@code message} property.
+     */
+    @Deprecated(forRemoval = false)
+    @JsonIgnore
+    public String getMsg() {
+        return message;
+    }
+
+    /**
+     * @deprecated use the canonical {@code message} property.
+     */
+    @Deprecated(forRemoval = false)
+    @JsonIgnore
+    public void setMsg(String msg) {
+        this.message = msg;
     }
 
     /**

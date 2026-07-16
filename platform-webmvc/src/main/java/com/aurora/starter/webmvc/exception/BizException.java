@@ -1,6 +1,7 @@
 package com.aurora.starter.webmvc.exception;
 
 import com.aurora.starter.webmvc.domain.response.Result;
+import com.aurora.starter.webmvc.enums.DefaultBizCode;
 import lombok.Getter;
 
 /**
@@ -29,8 +30,25 @@ public class BizException extends RuntimeException {
         this.code = bizCode.getCode();
     }
 
+    public BizException(String message) {
+        this(DefaultBizCode.SERVER_ERROR, message);
+    }
+
+    public BizException(String message, Throwable cause) {
+        this(DefaultBizCode.SERVER_ERROR.getCode(), message, cause);
+    }
+
     public BizException(int code, String message) {
         super(message);
         this.code = code;
+    }
+
+    public BizException(int code, String message, Throwable cause) {
+        super(message, cause);
+        this.code = code;
+    }
+
+    public BizException(Throwable cause) {
+        this(DefaultBizCode.SERVER_ERROR.getCode(), cause.getMessage(), cause);
     }
 }

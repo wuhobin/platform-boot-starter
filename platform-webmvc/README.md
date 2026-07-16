@@ -1,6 +1,6 @@
 # platform-webmvc
 
-> Spring Boot 3 Web MVC 通用件。沉淀统一响应体 `R<T>`、业务异常 `BizException`、全局异常处理器、TraceId 透传、请求日志拦截，下游 `<dependency>` 引入即用。**单模块通用件，不是 starter**——依赖 `@SpringBootApplication` 默认扫描 `com.aurora.starter.webmvc` 包；若下游包根不同，需用 `scanBasePackages` 追加。
+> Spring Boot 3 Web MVC 通用件。沉淀统一响应体 `Result<T>`、业务异常 `BizException`、全局异常处理器、TraceId 透传和请求日志。通过 Spring Boot 自动装配生效，下游引入依赖即可使用，无需追加组件扫描包。
 
 ![JDK](https://img.shields.io/badge/JDK-21+-blue.svg)
 ![SpringBoot](https://img.shields.io/badge/Spring%20Boot-3.5.0-blue.svg)
@@ -11,37 +11,13 @@
 
 ```xml
 <dependency>
-    <groupId>com.aurora</groupId>
+    <groupId>io.github.wuhobin</groupId>
     <artifactId>platform-webmvc</artifactId>
     <version>1.0.0-SNAPSHOT</version>
 </dependency>
 ```
 
-下游主类示例（包根非 `com.aurora.*` 时**必须**让 Spring 扫到 `com.aurora.starter.webmvc` 包，否则 Filter / `@RestControllerAdvice` 不生效）。两种写法二选一：
-
-**推荐：`scanBasePackageClasses`（类型安全，IDE 重构友好）**
-
-```java
-import com.aurora.starter.webmvc.PlatformWebMvcMarker;
-
-@SpringBootApplication(scanBasePackageClasses = {
-    Application.class,            // 业务工程自身包
-    PlatformWebMvcMarker.class    // platform-webmvc 包扫描锚点
-})
-public class Application { ... }
-```
-
-**或：`scanBasePackages` 字符串**
-
-```java
-@SpringBootApplication(scanBasePackages = {
-    "com.example.user",           // 业务工程自身包
-    "com.aurora.starter.webmvc"   // platform-webmvc 包
-})
-public class Application { ... }
-```
-
-> 业务工程自己的包**必须列出**，一旦写了 `scanBasePackages*`，默认扫描（主类所在包）就被覆盖。
+自动装配会注册 `GlobalExceptionHandler`、`SaTokenExceptionHandler`、`TraceIdFilter` 和 `RequestLogFilter`。业务工程声明同类型 Bean 时，平台默认实现会自动退让。
 
 ---
 
@@ -56,7 +32,7 @@ public Result<User> get(@PathVariable Long id) {
 @PostMapping
 public Result<Void> create(@RequestBody @Valid UserCreateDTO dto) {
     userService.create(dto);
-    return Result.success();                 // code=200, msg="操作成功"
+    return Result.success();                 // code=200, message="success"
 }
 
 @GetMapping("/exists/{id}")
@@ -70,24 +46,25 @@ public Result<Boolean> exists(@PathVariable Long id) {
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |
 | `code` | int | 业务码，200=成功，4xx/5xx=错误（HTTP 风格） |
-| `msg` | String | 提示信息 |
+| `message` | String | 提示信息 |
 | `data` | T | 业务数据，失败响应通常为 null |
 | `traceId` | String | 构造时从 MDC 取，未配置 trace 时为 null |
+| `extra` | Map | 可选扩展信息 |
 
 **静态工厂**：
 
 | 方法 | 用途 |
 | --- | --- |
-| `Result.success()` | 成功，code=200，msg="操作成功"，data=null |
-| `Result.success(msg)` | 成功，自定义提示 |
+| `Result.success()` | 成功，code=200，message="success"，data=null |
+| `Result.success(message)` | 成功，自定义提示 |
 | `Result.data(data)` | 成功 + 数据 |
-| `Result.success(msg, data)` | 成功 + 自定义提示 + 数据 |
+| `Result.success(message, data)` | 成功 + 自定义提示 + 数据 |
 | `Result.result(boolean)` | boolean 快捷分支：true → success()，false → error() |
-| `Result.error()` | 失败，code=500，msg="操作失败" |
-| `Result.error(msg)` | 失败，自定义提示（code=500） |
+| `Result.error()` | 失败，code=500，message="操作失败" |
+| `Result.error(message)` | 失败，自定义提示（code=500） |
 | `Result.error(bizCode)` | 失败，依据 `BizCode` 取 code 与默认 message |
-| `Result.error(bizCode, msg)` | 失败，依据 `BizCode` 取 code，自定义 message |
-| `Result.error(code, msg)` | 失败，完全自定义 code 与 message |
+| `Result.error(bizCode, message)` | 失败，依据 `BizCode` 取 code，自定义 message |
+| `Result.error(code, message)` | 失败，完全自定义 code 与 message |
 
 实例方法 `result.ok()` 返回 `code == 200`，便于业务侧链式判断。
 

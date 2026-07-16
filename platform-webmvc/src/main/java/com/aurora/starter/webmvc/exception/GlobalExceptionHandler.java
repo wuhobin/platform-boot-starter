@@ -18,7 +18,7 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 /**
  * 全局异常处理器.
  *
- * <p>HTTP 状态码统一 200，业务结果通过 {@link Result#getCode()} 表达。
+ * <p>HTTP 状态码统一 200，业务结果通过 {@link Result} 的 {@code code} 字段表达。
  * {@link NoHandlerFoundException} 需开启 {@code spring.mvc.throw-exception-if-no-handler-found=true} 才能被捕获。</p>
  *
  * @author whb
