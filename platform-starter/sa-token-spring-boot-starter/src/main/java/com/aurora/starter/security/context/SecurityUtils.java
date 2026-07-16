@@ -4,6 +4,7 @@ import cn.dev33.satoken.SaManager;
 import cn.dev33.satoken.session.SaSession;
 import cn.dev33.satoken.stp.SaTokenInfo;
 import cn.dev33.satoken.stp.StpUtil;
+import cn.dev33.satoken.stp.parameter.SaLoginParameter;
 import com.aurora.starter.security.account.AccountType;
 
 /**
@@ -37,6 +38,11 @@ public final class SecurityUtils {
         StpUtil.login(userId);
     }
 
+    public static void login(Object userId, SaLoginParameter parameter) {
+        assertNoMultiAccount();
+        StpUtil.login(userId, parameter);
+    }
+
     /**
      * 由 {@code SecurityAutoConfiguration} 在启动期设置。
      * true = 业务方声明了除默认 login 以外的账号 → 所有无参 xxx() 方法不可用。
@@ -68,6 +74,10 @@ public final class SecurityUtils {
     /** 指定账号体系登录。 */
     public static void loginAs(AccountType accountType, Object userId) {
         SaManager.getStpLogic(accountType.getCode()).login(userId);
+    }
+
+    public static void loginAs(AccountType accountType, Object userId, SaLoginParameter parameter) {
+        SaManager.getStpLogic(accountType.getCode()).login(userId, parameter);
     }
 
     public static void logout() {
