@@ -373,8 +373,11 @@ dromara:
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
+| `id` | String | 文件唯一 ID |
 | `url` | String | 文件访问 URL |
 | `filename` | String | 文件名 |
+| `originalFilename` | String | 上传时的原始文件名 |
+| `contentType` | String | MIME 类型 |
 | `size` | Long | 文件大小（字节） |
 | `platform` | String | 存储平台标识 |
 | `thUrl` | String | 缩略图 URL（如有） |
