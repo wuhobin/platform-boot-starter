@@ -88,7 +88,6 @@ public class FullScanInterceptor extends JsqlParserSupport implements InnerInter
                         table.getName(), ExceptionUtil.stacktraceToString(new Exception(), 5000));
                 throw new BadSqlGrammarException("无参数全表扫描", sql, new SQLException("查询列表数据失败"));
             }
-            log.warn("查询时未带任何条件：{} \n {}", sql, ExceptionUtil.stacktraceToString(new Exception(), 5000));
         }
     }
 
