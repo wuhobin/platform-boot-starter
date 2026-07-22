@@ -76,28 +76,27 @@ public class SecurityAutoConfiguration implements WebMvcConfigurer {
 
     @PostConstruct
     void logStartupSummary() {
+        log.info("{}", buildStartupSummary());
+    }
+
+    String buildStartupSummary() {
         PermissionProvider p = permissionProvider.getIfAvailable();
+        String lineSeparator = System.lineSeparator();
         String accounts = accountRegistry.all().stream()
-                .map(a -> String.format("%n      ├─ %-8s (%s, paths=%s)",
+                .map(a -> String.format(lineSeparator + "      ├─ %-8s (%s, paths=%s)",
                         a.getType().getCode(),
                         a.getDescription().isBlank() ? "-" : a.getDescription(),
                         a.getPaths()))
                 .collect(Collectors.joining());
-        log.info(
-                "Platform Security Starter initialized"
-                        + "%n    Token         : {} Bearer <token>, timeout={}s"
-                        + "%n    Multi-Account : {}"
-                        + "%n    Accounts      : {}{}"
-                        + "%n    Permission SPI: {}"
-                        + "%n    Excludes      : {}",
-                securityProperties.getTokenName(),
-                securityProperties.getTimeout(),
-                hasExplicitAccounts
-                        ? "ON（多账号模式）" : "OFF（单账号模式，catch-all /**）",
-                accountRegistry.all().size(),
-                accounts,
-                p != null ? p.getClass().getSimpleName() : "(not provided)",
-                securityProperties.getExcludePaths());
+        return "Platform Security Starter initialized"
+                + lineSeparator + "    Token         : " + securityProperties.getTokenName()
+                + " Bearer <token>, timeout=" + securityProperties.getTimeout() + "s"
+                + lineSeparator + "    Multi-Account : " + (hasExplicitAccounts
+                ? "ON（多账号模式）" : "OFF（单账号模式，catch-all /**）")
+                + lineSeparator + "    Accounts      : " + accountRegistry.all().size() + accounts
+                + lineSeparator + "    Permission SPI: "
+                + (p != null ? p.getClass().getSimpleName() : "(not provided)")
+                + lineSeparator + "    Excludes      : " + securityProperties.getExcludePaths();
     }
 
     /**
