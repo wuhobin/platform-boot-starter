@@ -22,9 +22,9 @@ package com.aurora.starter.knife4j.config;
 import com.github.xiaoymin.knife4j.spring.configuration.Knife4jAutoConfiguration;
 import com.github.xiaoymin.knife4j.spring.configuration.Knife4jProperties;
 import com.github.xiaoymin.knife4j.spring.extension.Knife4jOpenApiCustomizer;
+import org.springdoc.core.configuration.SpringDocConfiguration;
 import org.springdoc.core.properties.SpringDocConfigProperties;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -42,7 +42,7 @@ import org.springframework.context.annotation.Primary;
 
 @AutoConfiguration(
         before = Knife4jAutoConfiguration.class,
-        after = SpringDocConfigProperties.class)
+        after = SpringDocConfiguration.class)
 @EnableConfigurationProperties(Knife4jProperties.class)
 @ConditionalOnProperty(prefix = "knife4j", name = "enable", havingValue = "true")
 @ConditionalOnProperty(
@@ -54,7 +54,6 @@ public class SwaggerAutoConfiguration {
 
     @Primary
     @Bean("knife4jOpenApiCustomizer")
-    @ConditionalOnBean(SpringDocConfigProperties.class)
     @ConditionalOnMissingBean(Knife4jOpenApiCustomizer.class)
     public MyKnife4jOpenApiCustomizer knife4jOpenApiCustomizer(
             Knife4jProperties properties, SpringDocConfigProperties docProperties) {
