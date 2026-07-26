@@ -19,10 +19,16 @@
 
 package com.aurora.starter.knife4j.config;
 
+import com.github.xiaoymin.knife4j.spring.configuration.Knife4jAutoConfiguration;
 import com.github.xiaoymin.knife4j.spring.configuration.Knife4jProperties;
+import com.github.xiaoymin.knife4j.spring.extension.Knife4jOpenApiCustomizer;
 import org.springdoc.core.properties.SpringDocConfigProperties;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
 /**
@@ -34,18 +40,24 @@ import org.springframework.context.annotation.Primary;
  * @CreateTime 2026/7/14 - 10:52
  */
 
-@Configuration
+@AutoConfiguration(
+        before = Knife4jAutoConfiguration.class,
+        after = SpringDocConfigProperties.class)
+@EnableConfigurationProperties(Knife4jProperties.class)
+@ConditionalOnProperty(prefix = "knife4j", name = "enable", havingValue = "true")
+@ConditionalOnProperty(
+        prefix = "springdoc.api-docs",
+        name = "enabled",
+        havingValue = "true",
+        matchIfMissing = true)
 public class SwaggerAutoConfiguration {
-
-    private final Knife4jProperties properties;
-
-    public SwaggerAutoConfiguration(Knife4jProperties properties) {
-        this.properties = properties;
-    }
 
     @Primary
     @Bean("knife4jOpenApiCustomizer")
-    public MyKnife4jOpenApiCustomizer knife4jOpenApiCustomizer(SpringDocConfigProperties docProperties) {
-        return new MyKnife4jOpenApiCustomizer(this.properties, docProperties);
+    @ConditionalOnBean(SpringDocConfigProperties.class)
+    @ConditionalOnMissingBean(Knife4jOpenApiCustomizer.class)
+    public MyKnife4jOpenApiCustomizer knife4jOpenApiCustomizer(
+            Knife4jProperties properties, SpringDocConfigProperties docProperties) {
+        return new MyKnife4jOpenApiCustomizer(properties, docProperties);
     }
 }
