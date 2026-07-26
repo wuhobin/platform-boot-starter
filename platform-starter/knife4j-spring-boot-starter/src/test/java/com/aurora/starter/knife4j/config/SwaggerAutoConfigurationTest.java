@@ -4,10 +4,13 @@ import com.github.xiaoymin.knife4j.spring.extension.Knife4jOpenApiCustomizer;
 import org.junit.jupiter.api.Test;
 import org.springdoc.core.configuration.SpringDocConfiguration;
 import org.springdoc.core.properties.SpringDocConfigProperties;
+import org.springdoc.core.properties.SwaggerUiConfigProperties;
+import org.springdoc.core.properties.SwaggerUiOAuthProperties;
+import org.springdoc.webmvc.ui.SwaggerConfig;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.boot.test.context.runner.WebApplicationContextRunner;
-import org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -24,6 +27,9 @@ class SwaggerAutoConfigurationTest {
                             WebMvcAutoConfiguration.class,
                             SpringDocConfiguration.class,
                             SpringDocConfigProperties.class,
+                            SwaggerUiConfigProperties.class,
+                            SwaggerUiOAuthProperties.class,
+                            SwaggerConfig.class,
                             SwaggerAutoConfiguration.class));
 
     @Test
