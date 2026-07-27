@@ -6,6 +6,7 @@ import cn.hutool.core.util.StrUtil;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.*;
+import org.springframework.data.redis.core.script.RedisScript;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -33,6 +34,31 @@ public class RedisCache {
      */
     public Long getExpire(final String key) {
         return redisTemplate.opsForValue().getOperations().getExpire(key);
+    }
+
+    /**
+     * 获取指定时间单位的过期时间。
+     *
+     * @param key      缓存键
+     * @param timeUnit 时间单位
+     * @return 剩余过期时间
+     */
+    public Long getExpire(final String key, final TimeUnit timeUnit) {
+        return redisTemplate.getExpire(key, timeUnit);
+    }
+
+    /**
+     * 执行 Redis Lua 脚本。
+     *
+     * @param script Lua 脚本
+     * @param keys   Redis Key 列表
+     * @param args   脚本参数
+     * @param <T>    返回值类型
+     * @return 脚本执行结果
+     */
+    @SuppressWarnings("unchecked")
+    public <T> T execute(final RedisScript<T> script, final List<String> keys, final Object... args) {
+        return (T) redisTemplate.execute(script, keys, args);
     }
 
     /**
