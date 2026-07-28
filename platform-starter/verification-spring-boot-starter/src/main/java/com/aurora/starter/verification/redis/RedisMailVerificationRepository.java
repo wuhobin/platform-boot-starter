@@ -74,7 +74,7 @@ public class RedisMailVerificationRepository {
                 List.of(codeKey(email, scene), cooldownKey(email, scene)),
                 cooldownToken,
                 code,
-                Long.toString(expireTime.toMillis()));
+                expireTime.toMillis());
         return Long.valueOf(1L).equals(result);
     }
 

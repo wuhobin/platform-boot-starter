@@ -69,7 +69,7 @@ class RedisMailVerificationRepositoryTest {
                         "app:verification:mail:cooldown:login:user@example.com")),
                 eq("owned-token"),
                 eq("012345"),
-                eq("300000")))
+                eq(300000L)))
                 .thenReturn(1L);
 
         assertThat(repository.storeCodeIfCooldownOwned(
@@ -83,7 +83,7 @@ class RedisMailVerificationRepositoryTest {
                         "app:verification:mail:cooldown:login:user@example.com")),
                 eq("owned-token"),
                 eq("012345"),
-                eq("300000"));
+                eq(300000L));
     }
 
     @Test
