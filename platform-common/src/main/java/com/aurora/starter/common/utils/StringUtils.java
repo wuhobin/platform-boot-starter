@@ -150,6 +150,16 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils {
     }
 
     /**
+     * 标准化邮箱地址，去除首尾空白并转换为小写。
+     *
+     * @param email 邮箱地址
+     * @return 标准化后的邮箱地址，传入 {@code null} 时返回 {@code null}
+     */
+    public static String normalizeEmail(String email) {
+        return email == null ? null : email.trim().toLowerCase(Locale.ROOT);
+    }
+
+    /**
      * 截取字符串
      *
      * @param str   字符串
