@@ -1,5 +1,6 @@
 package com.aurora.starter.verification.config;
 
+import cloud.tianai.captcha.common.constant.CaptchaTypeConstant;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Email;
@@ -12,6 +13,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
 import java.time.Duration;
+import java.util.Locale;
+import java.util.Set;
 
 /**
  * 验证码配置。
@@ -32,6 +35,10 @@ public class VerificationProperties {
     @Valid
     @NotNull
     private MailProperties mail = new MailProperties();
+
+    @Valid
+    @NotNull
+    private ImageProperties image = new ImageProperties();
 
     /**
      * 邮件验证码配置。
@@ -84,6 +91,35 @@ public class VerificationProperties {
         @AssertTrue(message = "cooldown must be positive")
         public boolean isCooldownValid() {
             return cooldown != null && !cooldown.isNegative() && !cooldown.isZero();
+        }
+    }
+
+    /**
+     * 图片验证码配置。
+     */
+    @Data
+    public static class ImageProperties {
+
+        private static final Set<String> SUPPORTED_TYPES = Set.of(
+                CaptchaTypeConstant.SLIDER,
+                CaptchaTypeConstant.ROTATE,
+                CaptchaTypeConstant.CONCAT,
+                CaptchaTypeConstant.WORD_IMAGE_CLICK);
+
+        /**
+         * 是否启用图片验证码平台服务。
+         */
+        private boolean enabled;
+
+        /**
+         * tianai-captcha 验证码类型。
+         */
+        @NotBlank
+        private String type = CaptchaTypeConstant.SLIDER;
+
+        @AssertTrue(message = "type must be one of SLIDER, ROTATE, CONCAT, WORD_IMAGE_CLICK")
+        public boolean isTypeSupported() {
+            return type != null && SUPPORTED_TYPES.contains(type.trim().toUpperCase(Locale.ROOT));
         }
     }
 }

@@ -45,6 +45,7 @@
         <mybatis.plus.version>3.5.8</mybatis.plus.version>
         <knife4j.version>4.5.0</knife4j.version>
         <springdoc.version>2.8.9</springdoc.version>
+        <tianai.captcha.version>1.5.5</tianai.captcha.version>
 
         <!-- Spring Boot -->
         <spring.boot.version>3.5.0</spring.boot.version>
@@ -120,6 +121,13 @@
                 <groupId>io.github.wuhobin</groupId>
                 <artifactId>verification-spring-boot-starter</artifactId>
                 <version>${revision}</version>
+            </dependency>
+
+            <!-- Tianai Captcha -->
+            <dependency>
+                <groupId>cloud.tianai.captcha</groupId>
+                <artifactId>tianai-captcha-springboot-starter</artifactId>
+                <version>${tianai.captcha.version}</version>
             </dependency>
 
             <!-- SpringBoot的依赖配置-->

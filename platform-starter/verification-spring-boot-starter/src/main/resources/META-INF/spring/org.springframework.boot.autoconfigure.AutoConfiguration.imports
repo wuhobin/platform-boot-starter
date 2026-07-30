@@ -1,1 +1,2 @@
 com.aurora.starter.verification.config.VerificationAutoConfiguration
+com.aurora.starter.verification.config.ImageVerificationAutoConfiguration
