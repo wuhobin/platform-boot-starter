@@ -13,8 +13,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @author whb
  */
 @SpringBootApplication(scanBasePackageClasses = {
-        PlatformExampleApplication.class,
-        PlatformWebMvcMarker.class
+        PlatformExampleApplication.class
 })
 @MapperScan("com.aurora.example.mapper")
 public class PlatformExampleApplication {

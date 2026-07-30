@@ -54,7 +54,7 @@ spring:
       #   max-idle: 8
 ```
 
-引入 starter 后会自动装配：`RedisTemplate`、`RedisCache`、`RedisRateLimiter`、`RedisMessageQueue`、`RedisPubSub` 等常驻 Bean；`RedisBloomFilter`、`TwoLevelCache` 需通过 `platform.redis.*.enabled=true` 显式启用。
+引入 starter 后会自动装配：名为 `jsonRedisTemplate` 的 `JsonRedisTemplate`、`RedisCache`、`RedisRateLimiter`、`RedisMessageQueue`、`RedisPubSub` 等常驻 Bean；`RedisCache` 始终使用该 JSON 模板，不受 Spring Boot 默认 `redisTemplate` 影响。下游可通过提供同名 `JsonRedisTemplate` Bean 完全覆盖。`RedisBloomFilter`、`TwoLevelCache` 需通过 `platform.redis.*.enabled=true` 显式启用。
 
 ---
 

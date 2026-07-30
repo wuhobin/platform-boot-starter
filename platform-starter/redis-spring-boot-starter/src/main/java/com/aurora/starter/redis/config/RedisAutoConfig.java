@@ -13,13 +13,13 @@ import org.redisson.api.RBloomFilter;
 import org.redisson.api.RedissonClient;
 import org.redisson.codec.JsonJacksonCodec;
 import org.redisson.spring.starter.RedissonAutoConfigurationCustomizer;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.core.RedisTemplate;
 
 import java.util.LinkedHashMap;
 import java.util.HashSet;
@@ -41,9 +41,9 @@ public class RedisAutoConfig {
     /**
      * JSON 序列化 RedisTemplate.
      */
-    @Bean
-    @ConditionalOnMissingBean
-    public RedisTemplate redisTemplate(RedisConnectionFactory connectionFactory) {
+    @Bean("jsonRedisTemplate")
+    @ConditionalOnMissingBean(name = "jsonRedisTemplate")
+    public JsonRedisTemplate jsonRedisTemplate(RedisConnectionFactory connectionFactory) {
         return new JsonRedisTemplate(connectionFactory);
     }
 
@@ -54,8 +54,9 @@ public class RedisAutoConfig {
     }
 
     @Bean
-    public RedisCache redisCache(RedisTemplate redisTemplate){
-        return new RedisCache(redisTemplate);
+    public RedisCache redisCache(
+            @Qualifier("jsonRedisTemplate") JsonRedisTemplate jsonRedisTemplate) {
+        return new RedisCache(jsonRedisTemplate);
     }
 
     /**
