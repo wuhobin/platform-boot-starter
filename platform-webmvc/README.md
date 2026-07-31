@@ -17,7 +17,7 @@
 </dependency>
 ```
 
-自动装配会注册 `GlobalExceptionHandler`、`SaTokenExceptionHandler`、`TraceIdFilter` 和 `RequestLogFilter`。业务工程声明同类型 Bean 时，平台默认实现会自动退让。
+自动装配会注册 `GlobalExceptionHandler`、`SaTokenExceptionHandler`、`TraceIdFilter` 和 `RequestLogFilter`。接口响应加密默认关闭，开启后会额外注册 `ResponseEncryptionAdvice`。业务工程声明同类型 Bean 时，平台默认实现会自动退让。
 
 ---
 
@@ -74,7 +74,97 @@ public Result<Boolean> exists(@PathVariable Long id) {
 
 ---
 
-## 三、业务异常 `BizException`
+## 三、接口返回加密
+
+响应加密默认关闭。开启后，标注了 `@EncryptResponse` 的 Controller 方法或类会使用 AES-256-GCM 加密 `Result.data`：
+
+```yaml
+platform:
+  webmvc:
+    response-encryption:
+      enabled: true
+      key: ${RESPONSE_ENCRYPTION_KEY} # Base64 编码的 32 字节密钥
+```
+
+可以使用 OpenSSL 生成密钥：
+
+```shell
+openssl rand -base64 32
+```
+
+不要将真实密钥写入配置文件或提交到仓库。启用加密后，如果密钥缺失、不是合法 Base64，或解码后不是 32 字节，应用会启动失败。
+
+方法级使用：
+
+```java
+@EncryptResponse
+@GetMapping("/users/{id}")
+public Result<User> get(@PathVariable Long id) {
+    return Result.data(userService.findById(id));
+}
+```
+
+类级使用会覆盖该 Controller 的全部接口：
+
+```java
+@EncryptResponse
+@RestController
+@RequestMapping("/users")
+public class UserController {
+    // ...
+}
+```
+
+该注解仅支持 `Result<?>` 响应。`data == null` 时保持 `null`；`code`、`message`、`traceId` 和 `extra` 不变。非空 `data` 会先序列化为 JSON，再返回以下格式的字符串：
+
+```text
+v1.<Base64URL-IV>.<Base64URL-密文及GCM认证标签>
+```
+
+浏览器可以使用 Web Crypto API 解密：
+
+```javascript
+function decodeBase64(value) {
+  const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
+  const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "=");
+  return Uint8Array.from(atob(padded), character => character.charCodeAt(0));
+}
+
+async function decryptResponseData(encryptedData, base64Key) {
+  if (encryptedData == null) {
+    return null;
+  }
+
+  const [version, encodedIv, encodedCiphertext] = encryptedData.split(".");
+  if (version !== "v1" || !encodedIv || !encodedCiphertext) {
+    throw new Error("Unsupported encrypted response format");
+  }
+
+  const key = await crypto.subtle.importKey(
+    "raw",
+    decodeBase64(base64Key),
+    { name: "AES-GCM" },
+    false,
+    ["decrypt"]
+  );
+  const plaintext = await crypto.subtle.decrypt(
+    {
+      name: "AES-GCM",
+      iv: decodeBase64(encodedIv),
+      tagLength: 128
+    },
+    key,
+    decodeBase64(encodedCiphertext)
+  );
+  return JSON.parse(new TextDecoder().decode(plaintext));
+}
+```
+
+> 响应加密不能替代 HTTPS。普通浏览器最终仍需持有解密能力，因此它不能阻止终端用户查看自己收到的数据。
+
+---
+
+## 四、业务异常 `BizException`
 
 抛出即被 `GlobalExceptionHandler` 捕获并转 `Result.error(...)`：
 
@@ -108,7 +198,7 @@ throw new BizException(UserBizCode.USER_NOT_FOUND);
 
 ---
 
-## 四、全局异常处理器
+## 五、全局异常处理器
 
 `GlobalExceptionHandler` 自动处理以下异常并返回 `Result`：
 
@@ -137,7 +227,7 @@ throw new BizException(UserBizCode.USER_NOT_FOUND);
 
 ---
 
-## 五、TraceId 透传
+## 六、TraceId 透传
 
 `TraceIdFilter` 自动处理每个请求：
 
@@ -189,7 +279,7 @@ public TaskDecorator traceDecorator() {
 
 ---
 
-## 六、请求日志拦截
+## 七、请求日志拦截
 
 `RequestLogFilter` 在每个请求 finally 时输出（INFO 级别）：
 
@@ -210,7 +300,7 @@ IP 取值顺序：`X-Forwarded-For` 首段 → `X-Real-IP` → `request.getRemot
 
 ---
 
-## 七、版本与依赖
+## 八、版本与依赖
 
 | 组件 | 版本 |
 | --- | --- |
