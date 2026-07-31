@@ -30,6 +30,7 @@ import org.springframework.util.StringUtils;
 public class VerificationAutoConfiguration {
 
     @Bean
+    @ConditionalOnMissingBean
     public VerificationCodeGenerator verificationCodeGenerator() {
         return new VerificationCodeGenerator();
     }

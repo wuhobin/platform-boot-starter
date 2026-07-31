@@ -1,6 +1,6 @@
 # Verification Spring Boot Starter
 
-基于 Spring Mail、Redis 和 tianai-captcha 的验证码基础设施，提供邮件验证码和图片行为验证码能力。Starter 不包含 Controller、注册、登录或密码重置等业务流程，HTTP 接口和业务限流由下游应用负责。
+基于 Spring Mail、Redis、阿里云短信认证服务和 tianai-captcha 的验证码基础设施，提供邮件、短信和图片行为验证码能力。Starter 不包含 Controller、注册、登录或密码重置等业务流程，HTTP 接口由下游应用负责。
 
 ## 功能
 
@@ -25,7 +25,18 @@
 - 必须使用 Redis；启用时禁止静默降级到 tianai `LocalCacheStore`
 - `ResourceStore` 和 `ImageVerificationService` 均允许下游 Bean 完全覆盖
 
-当前版本不提供短信验证码。邮件验证码不限制每小时/每天发送次数，也不限制验证码错误尝试次数。
+### 短信验证码
+
+- 本地固定生成 6 位纯数字验证码，通过阿里云短信认证服务同步发送并在本地校验
+- 仅支持中国大陆手机号，接受 `138...`、`86138...` 和 `+86138...` 三种格式
+- 固定签名 `恒创联众`、模板 `100001`，不允许配置或由单次请求覆盖
+- 默认 60 秒冷却、每小时 5 次、北京时间自然日 10 次，配额按手机号跨场景累计
+- Redis Lua 在发送前原子预占冷却、配额并保存验证码；明确发送失败时原子回滚
+- 校验成功后原子消费；默认最多错误 5 次，第 5 次错误会删除验证码
+- 自定义响应完整映射阿里云响应头、状态码和业务字段，但不暴露 `model.verifyCode`
+- 默认关闭，仅支持 Starter 属性中的 AccessKey ID/Secret，不使用默认凭证链
+
+邮件验证码不限制每小时/每天发送次数，也不限制验证码错误尝试次数。
 
 ## 引入依赖
 
@@ -70,6 +81,16 @@ platform:
       enabled: true
       # 可选：SLIDER、ROTATE、CONCAT、WORD_IMAGE_CLICK
       type: SLIDER
+    sms:
+      enabled: true
+      access-key-id: ${ALIYUN_SMS_ACCESS_KEY_ID}
+      access-key-secret: ${ALIYUN_SMS_ACCESS_KEY_SECRET}
+      # 以下均可省略并使用默认值
+      expire-time: 5m
+      cooldown: 60s
+      hourly-limit: 5
+      daily-limit: 10
+      max-failed-attempts: 5
 ```
 
 配置约束：
@@ -85,6 +106,14 @@ platform:
 | `platform.verification.mail.cooldown` | `60s` | 同一邮箱和场景的发送冷却时间，必须大于 0 |
 | `platform.verification.image.enabled` | `false` | 是否启用平台图片验证码服务、资源和校验 |
 | `platform.verification.image.type` | `SLIDER` | 固定生成类型，忽略大小写，仅支持四种标准类型 |
+| `platform.verification.sms.enabled` | `false` | 是否启用阿里云短信验证码 |
+| `platform.verification.sms.access-key-id` | 无 | 启用短信时必填，仅从 Starter 属性读取，配置对象的 `toString()` 不输出该值 |
+| `platform.verification.sms.access-key-secret` | 无 | 启用短信时必填，仅从 Starter 属性读取，配置对象的 `toString()` 不输出该值 |
+| `platform.verification.sms.expire-time` | `5m` | 有效期，范围 30 秒～30 分钟 |
+| `platform.verification.sms.cooldown` | `60s` | 同一手机号和场景的发送冷却，必须大于 0 |
+| `platform.verification.sms.hourly-limit` | `5` | 首次发送起滚动 60 分钟的手机号配额，必须大于 0 |
+| `platform.verification.sms.daily-limit` | `10` | 北京时间自然日手机号配额，不小于小时配额 |
+| `platform.verification.sms.max-failed-attempts` | `5` | 单个验证码最大错误次数，范围 1～10 |
 
 图片验证码启用时，tianai 二次验证必须保持开启；若显式设置 `captcha.secondary.enabled=false`，应用会启动失败。Starter 在代码中提供 120 秒挑战有效期和 60 秒二次验证有效期等安全默认值，普通用户无需配置 tianai。高级用户仍可使用官方 `captcha.*` 配置覆盖包括过期时间在内的参数。
 
@@ -154,6 +183,48 @@ public enum AccountVerificationScene implements VerificationScene {
 ```
 
 场景编码会转换为大写，并且必须匹配 `[A-Z0-9_-]{1,64}`。
+
+## 短信验证码接入
+
+Starter 只注册 `SmsVerificationService`，不提供 Controller。签名、模板和阿里云请求策略固定在代码中；发送请求只允许传手机号和场景：
+
+```java
+import com.aurora.starter.verification.scene.CommonVerificationScene;
+import com.aurora.starter.verification.sms.SmsVerificationSendRequest;
+import com.aurora.starter.verification.sms.SmsVerificationSendResponse;
+import com.aurora.starter.verification.sms.SmsVerificationService;
+import com.aurora.starter.verification.sms.SmsVerificationVerifyRequest;
+
+public class SmsLoginService {
+
+    private final SmsVerificationService verificationService;
+
+    public SmsLoginService(SmsVerificationService verificationService) {
+        this.verificationService = verificationService;
+    }
+
+    public SmsVerificationSendResponse sendCode(String phoneNumber) {
+        return verificationService.send(new SmsVerificationSendRequest(
+                phoneNumber,
+                CommonVerificationScene.LOGIN));
+    }
+
+    public boolean verify(String phoneNumber, String code) {
+        return verificationService.verifyAndConsume(new SmsVerificationVerifyRequest(
+                phoneNumber,
+                CommonVerificationScene.LOGIN,
+                code));
+    }
+}
+```
+
+`scene` 是验证码的隔离维度。同一手机号在 `LOGIN` 场景收到的验证码不能用于 `REGISTER`，但小时和每日发送配额仍按手机号跨场景累计。新验证码会覆盖同一“手机号 + 场景”的旧验证码；校验成功不会提前清除发送冷却。
+
+阿里云请求固定使用 `SignName=恒创联众`、`TemplateCode=100001`、`ReturnVerifyCode=false`、`AutoRetry=0`，模板参数为 `{"code":"验证码","min":"有效分钟数"}`，`OutId` 自动生成为 UUID。连接超时为 3 秒、读取超时为 5 秒，SDK 自动重试关闭且最多只尝试一次。Starter 不调用阿里云校验接口。
+
+只有阿里云返回 `Success=true` 且 `Code=OK` 才会正常返回 `SmsVerificationSendResponse`。返回对象包括 HTTP `headers`、`statusCode`，Body 的 `success`、`code`、`message`、`requestId`、`accessDeniedDetail`，以及 Model 的 `requestId`、`outId`、`bizId`；唯一排除阿里云响应中的 `model.verifyCode`。
+
+发送前，Starter 使用单个 Redis Lua 脚本保存本次验证码并预占冷却、小时和每日配额。阿里云明确返回失败时，仅在验证码仍属于本次预占的前提下回滚；网络超时、连接中断等结果未知时保留验证码、冷却和配额，避免重复发送和重复计费。小时窗口从该窗口首次成功预占起滚动 60 分钟，每日窗口在 `Asia/Shanghai` 次日零点重置。
 
 ## 图片验证码接入
 
@@ -226,6 +297,8 @@ Starter 无法可靠识别客户端，因此不内置请求限流。生产环境
 
 - `VerificationCooldownException`：仍处于发送冷却期，可通过 `getRetryAfter()` 获取剩余时间
 - `VerificationDeliveryException`：邮件创建或 SMTP 投递失败
+- `SmsVerificationDeliveryException`：阿里云明确拒绝或发送结果未知；`getResponse()` 在明确失败时返回自定义响应，结果未知时为 `null`
+- `VerificationRateLimitException`：短信小时或每日配额耗尽，可通过 `getType()` 和 `getRetryAfter()` 获取类型及剩余时间
 - `VerificationStorageException`：Redis 冷却、保存或校验失败
 - `ImageVerificationException`：图片资源、Redis 或验证码生成器发生系统故障
 - `IllegalArgumentException`：邮箱、场景、主题、正文、`captchaId` 或轨迹参数非法
@@ -240,3 +313,19 @@ app:verification:mail:cooldown:register:user@example.com
 ```
 
 按照当前模块约定，发送和校验日志会记录完整邮箱及验证码，但不会记录邮件正文。这些日志包含在验证码有效期内可直接使用的认证凭据，生产环境必须严格限制日志访问权限、导出范围和保留周期。
+
+## 短信验证码 Redis 与日志安全说明
+
+短信 Redis Key 包含规范化后的明文手机号，验证码值使用“预占令牌 + 明文验证码”保存。示例 Key：
+
+```text
+app:verification:sms:code:login:13800138000
+app:verification:sms:attempts:login:13800138000
+app:verification:sms:cooldown:login:13800138000
+app:verification:sms:quota:hourly:13800138000
+app:verification:sms:quota:daily:20260731:13800138000
+```
+
+按照当前模块约定，发送成功会在 INFO 日志记录完整手机号、场景、验证码、`requestId` 和 `bizId`；校验成功会在 INFO 日志记录完整手机号、场景和验证码；校验失败会在 WARN 日志记录完整手机号、场景、提交的验证码和累计错误次数。AccessKey ID/Secret 不会写入日志。
+
+这些短信日志包含个人信息和在有效期内可直接使用的认证凭据。生产环境必须严格限制日志访问权限、导出范围和保留周期，并避免将其同步到权限边界不一致的第三方日志平台。
