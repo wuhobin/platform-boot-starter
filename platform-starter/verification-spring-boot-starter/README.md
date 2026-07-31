@@ -19,7 +19,7 @@
 
 - 集成 `tianai-captcha-springboot-starter` 1.5.5，直接使用其数据模型
 - 服务端固定单一验证码类型，默认 `SLIDER`
-- 内置 5 张网络背景图以及带超时、进程内缓存的 URL 资源读取器
+- 四种标准类型共享内置的 5 张网络背景图，并提供带超时、进程内缓存的 URL 资源读取器
 - 使用 tianai 内置二次验证，匹配成功后的 `captchaId` 是短期、一次性业务凭证
 - 默认挑战有效期 120 秒，二次验证凭证有效期 60 秒
 - 必须使用 Redis；启用时禁止静默降级到 tianai `LocalCacheStore`
@@ -200,7 +200,7 @@ public void login(LoginRequest request) {
 
 同一凭证只能消费一次，默认 60 秒过期，不绑定业务场景、账号、会话或 IP。轨迹错误、挑战过期、凭证不存在或重复消费返回 `false`；空参数抛出 `IllegalArgumentException`；资源、Redis 或生成器故障抛出 `ImageVerificationException`。
 
-### 内置 SLIDER 资源
+### 内置图片资源
 
 默认 `ResourceStore` 使用以下 HTTPS 图片：
 
@@ -210,7 +210,7 @@ public void login(LoginRequest request) {
 - `https://oss.wuhobin.top/base/20260418/20260418170105_613e5cae.png`
 - `https://oss.wuhobin.top/base/20260418/20260418170445_3e29d1e0.png`
 
-URL 读取的连接超时为 3 秒、读取超时为 5 秒，单个响应最大 10 MiB，最多缓存 32 个 URL；首次成功下载后按 URL 缓存在当前 JVM。首次生成依赖 OSS 可用性；下载失败会抛出图片资源异常。内置资源只保证 `SLIDER` 可用。配置 `ROTATE`、`CONCAT` 或 `WORD_IMAGE_CLICK` 时，必须由下游声明完整的 `ResourceStore` Bean；自定义 Bean 存在时，内置 Store 自动退让。
+URL 读取的连接超时为 3 秒、读取超时为 5 秒，单个响应最大 10 MiB，最多缓存 32 个 URL；首次成功下载后按 URL 缓存在当前 JVM。首次生成依赖 OSS 可用性；下载失败会抛出图片资源异常。内置 `ResourceStore` 会将以上背景图同时注册给 `SLIDER`、`ROTATE`、`CONCAT` 和 `WORD_IMAGE_CLICK`。其中 `SLIDER`、`ROTATE` 所需模板以及 `WORD_IMAGE_CLICK` 所需字体由 tianai 的默认资源提供，因此使用内置 Store 时必须保持 `captcha.init-default-resource=true`（Starter 默认值）。自定义 `ResourceStore` Bean 存在时，内置 Store 自动退让。
 
 下游也可以声明自己的 `ImageVerificationService` Bean 完全替换默认实现。两种覆盖均不需要排除自动配置。
 

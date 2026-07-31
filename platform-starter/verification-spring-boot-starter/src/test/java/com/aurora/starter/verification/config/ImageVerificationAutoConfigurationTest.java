@@ -15,6 +15,8 @@ import cloud.tianai.captcha.spring.store.impl.RedisCacheStore;
 import com.aurora.starter.verification.image.ImageVerificationService;
 import com.aurora.starter.verification.resource.DefaultImageVerificationResourceStore;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
@@ -107,14 +109,17 @@ class ImageVerificationAutoConfigurationTest {
                 });
     }
 
-    @Test
-    void integratesWithTianaiAutoConfigurations() {
+    @ParameterizedTest
+    @ValueSource(strings = {"SLIDER", "ROTATE", "CONCAT", "WORD_IMAGE_CLICK"})
+    void integratesWithTianaiAutoConfigurationsForEverySupportedType(String type) {
         new ApplicationContextRunner()
                 .withConfiguration(AutoConfigurations.of(
                         ImageVerificationAutoConfiguration.class,
                         CacheStoreAutoConfiguration.class,
                         ImageCaptchaAutoConfiguration.class))
-                .withPropertyValues("platform.verification.image.enabled=true")
+                .withPropertyValues(
+                        "platform.verification.image.enabled=true",
+                        "platform.verification.image.type=" + type)
                 .withBean(StringRedisTemplate.class, () -> mock(StringRedisTemplate.class))
                 .run(context -> {
                     assertThat(context).hasNotFailed();
@@ -126,6 +131,9 @@ class ImageVerificationAutoConfigurationTest {
                             .isInstanceOf(RedisCacheStore.class);
                     assertThat(context.getBean(ResourceStore.class))
                             .isInstanceOf(DefaultImageVerificationResourceStore.class);
+                    DefaultImageVerificationResourceStore store =
+                            (DefaultImageVerificationResourceStore) context.getBean(ResourceStore.class);
+                    assertThat(store.listResourcesByTypeAndTag(type, "default")).hasSize(5);
                     assertThat(context.getBean(ImageCaptchaResourceManager.class))
                             .isInstanceOf(DefaultImageCaptchaResourceManager.class);
                 });

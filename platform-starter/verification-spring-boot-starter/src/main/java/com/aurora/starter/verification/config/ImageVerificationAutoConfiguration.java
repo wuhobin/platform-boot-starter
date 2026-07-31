@@ -3,7 +3,6 @@ package com.aurora.starter.verification.config;
 import cloud.tianai.captcha.application.ImageCaptchaApplication;
 import cloud.tianai.captcha.cache.CacheStore;
 import cloud.tianai.captcha.cache.impl.LocalCacheStore;
-import cloud.tianai.captcha.common.constant.CaptchaTypeConstant;
 import cloud.tianai.captcha.resource.ImageCaptchaResourceManager;
 import cloud.tianai.captcha.resource.ResourceProviders;
 import cloud.tianai.captcha.resource.ResourceStore;
@@ -104,12 +103,6 @@ public class ImageVerificationAutoConfiguration {
                 type, properties.getExpire().get("default"));
         if (challengeExpire == null || challengeExpire <= 0) {
             throw new IllegalStateException("captcha challenge expire must be positive");
-        }
-        if (resourceStore instanceof DefaultImageVerificationResourceStore
-                && !CaptchaTypeConstant.SLIDER.equals(type)) {
-            throw new IllegalStateException(
-                    "The built-in ResourceStore only supports SLIDER; provide a custom ResourceStore for "
-                            + type);
         }
         if (resourceStore instanceof DefaultImageVerificationResourceStore
                 && !Boolean.TRUE.equals(properties.getInitDefaultResource())) {
