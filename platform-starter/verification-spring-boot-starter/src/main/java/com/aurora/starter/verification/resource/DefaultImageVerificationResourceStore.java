@@ -18,11 +18,12 @@ public final class DefaultImageVerificationResourceStore extends LocalMemoryReso
             CaptchaTypeConstant.WORD_IMAGE_CLICK);
 
     static final List<String> DEFAULT_BACKGROUNDS = List.of(
-            "https://oss.wuhobin.top/base/20260418/20260418165311_949166a0.png",
-            "https://oss.wuhobin.top/base/20260418/20260418165808_928ffbe5.png",
-            "https://oss.wuhobin.top/base/20260418/20260418170001_567d69ad.png",
-            "https://oss.wuhobin.top/base/20260418/20260418170105_613e5cae.png",
-            "https://oss.wuhobin.top/base/20260418/20260418170445_3e29d1e0.png");
+            "https://oss.wuhobin.top/captcha/8d4ca19573fe5084f2679e9af896debf.jpg",
+            "https://oss.wuhobin.top/captcha/ed68288125b316dfc1ebb54ec0a4a683.jpg",
+            "https://oss.wuhobin.top/captcha/bdb1b69f06a0afc06727428c1a8c51b1.jpg",
+            "https://oss.wuhobin.top/captcha/0812446b0907bce26c0462feebd4c5ba.jpeg",
+            "https://oss.wuhobin.top/captcha/956d07e4bdd8143f5ba06487b85ce8df.jpg",
+            "https://oss.wuhobin.top/captcha/53730776b67bd8c60f88c0d3075c021d.jpeg");
 
     public DefaultImageVerificationResourceStore() {
         for (String type : SUPPORTED_TYPES) {
