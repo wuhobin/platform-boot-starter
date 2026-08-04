@@ -53,6 +53,11 @@ public class SecurityProperties {
     private String tokenStyle = "uuid";
 
     /**
+     * token 最低活跃频率（单位：秒），如果 token 超过此时间没有访问系统就会被冻结 默认1小时
+     */
+    private int activeTimeout = 3600;
+
+    /**
      * 是否打印 Sa-Token 框架内部日志
      */
     private boolean isLog = false;

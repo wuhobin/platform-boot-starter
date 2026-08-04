@@ -90,7 +90,7 @@ public class SecurityAutoConfiguration implements WebMvcConfigurer {
                 .collect(Collectors.joining());
         return "Platform Security Starter initialized"
                 + lineSeparator + "    Token         : " + securityProperties.getTokenName()
-                + " Bearer <token>, timeout=" + securityProperties.getTimeout() + "s"
+                + " Bearer <token>, timeout=" + securityProperties.getTimeout() + "s, activeTimeout=" + securityProperties.getActiveTimeout() + "s"
                 + lineSeparator + "    Multi-Account : " + (hasExplicitAccounts
                 ? "ON（多账号模式）" : "OFF（单账号模式，catch-all /**）")
                 + lineSeparator + "    Accounts      : " + accountRegistry.all().size() + accounts
@@ -110,7 +110,7 @@ public class SecurityAutoConfiguration implements WebMvcConfigurer {
         config.setTokenName(securityProperties.getTokenName());
         config.setTokenPrefix("Bearer");
         config.setTimeout(securityProperties.getTimeout());
-        config.setActiveTimeout(-1);
+        config.setActiveTimeout(securityProperties.getActiveTimeout());
         config.setIsConcurrent(true);
         config.setIsShare(true);
         config.setTokenStyle(securityProperties.getTokenStyle());
