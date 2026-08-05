@@ -12,6 +12,7 @@ import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSeriali
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -62,5 +63,23 @@ class RedisAutoConfigTest {
                             context.getBean(RedisCache.class), "redisTemplate"))
                             .isSameAs(override);
                 });
+    }
+
+    @Test
+    void shouldRoundTripJavaTimeValues() {
+        contextRunner.run(context -> {
+            JsonRedisTemplate jsonRedisTemplate = context.getBean(JsonRedisTemplate.class);
+            GenericJackson2JsonRedisSerializer serializer =
+                    (GenericJackson2JsonRedisSerializer) jsonRedisTemplate.getValueSerializer();
+            DateTimeCacheValue value = new DateTimeCacheValue(
+                    LocalDateTime.of(2026, 8, 5, 13, 30, 45, 123_000_000));
+
+            Object restored = serializer.deserialize(serializer.serialize(value));
+
+            assertThat(restored).isEqualTo(value);
+        });
+    }
+
+    private record DateTimeCacheValue(LocalDateTime loginTime) {
     }
 }

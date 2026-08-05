@@ -1,5 +1,6 @@
 package com.aurora.starter.redis.core;
 
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
@@ -15,7 +16,9 @@ public class JsonRedisTemplate extends RedisTemplate<String, Object> {
 
     private static final RedisSerializer<String> STRING_REDIS_SERIALIZER = new StringRedisSerializer();
 
-    private static final RedisSerializer<Object> JACKSON_2_JSON_REDIS_SERIALIZER = new GenericJackson2JsonRedisSerializer();
+    private static final RedisSerializer<Object> JACKSON_2_JSON_REDIS_SERIALIZER =
+            new GenericJackson2JsonRedisSerializer()
+                    .configure(objectMapper -> objectMapper.registerModule(new JavaTimeModule()));
 
     public JsonRedisTemplate(final RedisConnectionFactory connectionFactory) {
         Objects.requireNonNull(connectionFactory, "connectionFactory 不能为null");
