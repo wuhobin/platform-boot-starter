@@ -29,7 +29,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(BizException.class)
     public Result<Void> handleBizException(BizException e) {
-        log.warn("业务异常: code={}, message={}", e.getCode(), e.getMessage());
+        if (e.getCause() != null) {
+            log.error("业务异常: code={}, message={}", e.getCode(), e.getMessage(), e);
+        } else {
+            log.warn("业务异常: code={}, message={}", e.getCode(), e.getMessage());
+        }
         return Result.error(e.getCode(), e.getMessage());
     }
 
