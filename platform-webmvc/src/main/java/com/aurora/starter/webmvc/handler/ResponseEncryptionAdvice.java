@@ -21,6 +21,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.GCMParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 import java.lang.reflect.Method;
 import java.security.GeneralSecurityException;
 import java.security.SecureRandom;
@@ -42,16 +43,29 @@ public class ResponseEncryptionAdvice implements ResponseBodyAdvice<Object> {
     private static final int TAG_LENGTH_BITS = 128;
 
     private static final Base64.Encoder BASE64_URL_ENCODER = Base64.getUrlEncoder().withoutPadding();
+    private static final String SECRET_PROPERTY = "platform.webmvc.response-secret-key";
+    private static final String SECRET_ENVIRONMENT_VARIABLE = "PLATFORM_RESPONSE_SECRET_KEY";
 
     private final ObjectMapper objectMapper;
 
-    private final SecretKey secretKey;
+    private final String encodedSecretKey;
+
+    private final SecretKey fixedSecretKey;
+
+    private volatile SecretKey parsedSecretKey;
 
     private final SecureRandom secureRandom = new SecureRandom();
 
     public ResponseEncryptionAdvice(ObjectMapper objectMapper, SecretKey secretKey) {
         this.objectMapper = objectMapper;
-        this.secretKey = secretKey;
+        this.encodedSecretKey = null;
+        this.fixedSecretKey = secretKey;
+    }
+
+    public ResponseEncryptionAdvice(ObjectMapper objectMapper, String encodedSecretKey) {
+        this.objectMapper = objectMapper;
+        this.encodedSecretKey = encodedSecretKey;
+        this.fixedSecretKey = null;
     }
 
     @Override
@@ -92,13 +106,50 @@ public class ResponseEncryptionAdvice implements ResponseBodyAdvice<Object> {
 
         try {
             Cipher cipher = Cipher.getInstance(TRANSFORMATION);
-            cipher.init(Cipher.ENCRYPT_MODE, secretKey, new GCMParameterSpec(TAG_LENGTH_BITS, iv));
+            cipher.init(Cipher.ENCRYPT_MODE, requireSecretKey(), new GCMParameterSpec(TAG_LENGTH_BITS, iv));
             byte[] ciphertext = cipher.doFinal(plaintext);
             return VERSION + "."
                     + BASE64_URL_ENCODER.encodeToString(iv) + "."
                     + BASE64_URL_ENCODER.encodeToString(ciphertext);
         } catch (GeneralSecurityException exception) {
             throw new IllegalStateException("Failed to encrypt response data", exception);
+        }
+    }
+
+    private SecretKey requireSecretKey() {
+        if (fixedSecretKey != null) {
+            return fixedSecretKey;
+        }
+        SecretKey current = parsedSecretKey;
+        if (current != null) {
+            return current;
+        }
+        synchronized (this) {
+            current = parsedSecretKey;
+            if (current == null) {
+                current = new SecretKeySpec(decodeKey(encodedSecretKey), "AES");
+                parsedSecretKey = current;
+            }
+            return current;
+        }
+    }
+
+    private static byte[] decodeKey(String encodedSecretKey) {
+        if (encodedSecretKey == null || encodedSecretKey.isBlank()) {
+            throw new IllegalStateException(
+                    SECRET_PROPERTY + " must be configured (environment variable "
+                            + SECRET_ENVIRONMENT_VARIABLE + ")");
+        }
+        try {
+            byte[] decoded = Base64.getDecoder().decode(encodedSecretKey.trim());
+            if (decoded.length != 32) {
+                throw new IllegalStateException(
+                        SECRET_PROPERTY + " must decode to exactly 32 bytes");
+            }
+            return decoded;
+        } catch (IllegalArgumentException exception) {
+            throw new IllegalStateException(
+                    SECRET_PROPERTY + " must be valid Base64", exception);
         }
     }
 

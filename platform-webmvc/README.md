@@ -17,7 +17,7 @@
 </dependency>
 ```
 
-自动装配会注册 `GlobalExceptionHandler`、`SaTokenExceptionHandler`、`TraceIdFilter` 和 `RequestLogFilter`。接口响应加密默认关闭，开启后会额外注册 `ResponseEncryptionAdvice`。业务工程声明同类型 Bean 时，平台默认实现会自动退让。
+自动装配会注册 `GlobalExceptionHandler`、`SaTokenExceptionHandler`、`TraceIdFilter`、`RequestLogFilter`、`PlatformCredentialCipher` 和 `ResponseEncryptionAdvice`。响应加密只有在接口标注 `@EncryptResponse` 时才生效；两个密钥都在对应功能第一次使用时懒校验。业务工程声明同类型 Bean 时，平台默认实现会自动退让。
 
 ---
 
@@ -76,14 +76,13 @@ public Result<Boolean> exists(@PathVariable Long id) {
 
 ## 三、接口返回加密
 
-响应加密默认关闭。开启后，标注了 `@EncryptResponse` 的 Controller 方法或类会使用 AES-256-GCM 加密 `Result.data`：
+响应加密由 `@EncryptResponse` opt-in。标注了该注解的 Controller 方法或类会使用 AES-256-GCM 加密 `Result.data`；未标注的接口保持原响应格式：
 
 ```yaml
 platform:
   webmvc:
-    response-encryption:
-      enabled: true
-      key: ${RESPONSE_ENCRYPTION_KEY} # Base64 编码的 32 字节密钥
+    response-secret-key: ${PLATFORM_RESPONSE_SECRET_KEY:} # Base64 编码的 32 字节密钥
+    credential-secret-key: ${PLATFORM_CREDENTIAL_SECRET_KEY:} # Base64 编码的 32 字节密钥
 ```
 
 可以使用 OpenSSL 生成密钥：
@@ -92,7 +91,7 @@ platform:
 openssl rand -base64 32
 ```
 
-不要将真实密钥写入配置文件或提交到仓库。启用加密后，如果密钥缺失、不是合法 Base64，或解码后不是 32 字节，应用会启动失败。
+不要将真实密钥写入配置文件或提交到仓库。响应加密密钥只有在标注了 `@EncryptResponse` 的接口被调用时才会校验；凭据密钥只有在加密或解密服务端凭据时才会校验。缺失、不是合法 Base64，或解码后不是 32 字节时，调用会失败。
 
 方法级使用：
 
@@ -161,6 +160,23 @@ async function decryptResponseData(encryptedData, base64Key) {
 ```
 
 > 响应加密不能替代 HTTPS。普通浏览器最终仍需持有解密能力，因此它不能阻止终端用户查看自己收到的数据。
+
+### 服务端凭据加密
+
+`PlatformCredentialCipher` 位于 `com.aurora.starter.webmvc.security`，用于保存邮件授权码、SSH 密码等服务端凭据：
+
+```java
+String ciphertext = cipher.encrypt("mail.auth-code", authorizationCode);
+String authorizationCode = cipher.decrypt("mail.auth-code", ciphertext);
+```
+
+`purpose` 会作为 AES-GCM 的 AAD，防止同一密文被搬移到不相关的凭据字段。密文格式为：
+
+```text
+v1:<Base64(12 字节 IV)>:<Base64(密文及 128 位认证标签)>
+```
+
+响应报文密钥和服务端凭据密钥必须独立；不要把凭据密钥交给浏览器。
 
 ---
 

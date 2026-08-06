@@ -94,6 +94,38 @@ class ResponseEncryptionAdviceTest {
     }
 
     @Test
+    void validatesMissingSecretOnFirstAnnotatedResponse() throws Exception {
+        ResponseEncryptionAdvice lazyAdvice = new ResponseEncryptionAdvice(objectMapper, "");
+
+        assertThatThrownBy(() -> lazyAdvice.beforeBodyWrite(
+                Result.data("payload"),
+                returnType(MethodController.class, "encrypted"),
+                MediaType.APPLICATION_JSON,
+                MappingJackson2HttpMessageConverter.class,
+                null,
+                null
+        ))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("response-secret-key");
+    }
+
+    @Test
+    void validatesInvalidSecretOnFirstAnnotatedResponse() throws Exception {
+        ResponseEncryptionAdvice lazyAdvice = new ResponseEncryptionAdvice(objectMapper, "not-base64!");
+
+        assertThatThrownBy(() -> lazyAdvice.beforeBodyWrite(
+                Result.data("payload"),
+                returnType(MethodController.class, "encrypted"),
+                MediaType.APPLICATION_JSON,
+                MappingJackson2HttpMessageConverter.class,
+                null,
+                null
+        ))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("valid Base64");
+    }
+
+    @Test
     void rejectsNonResultResponseBody() throws Exception {
         assertThatThrownBy(() -> advice.beforeBodyWrite(
                 "payload",
