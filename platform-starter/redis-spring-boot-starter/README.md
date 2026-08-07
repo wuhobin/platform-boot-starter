@@ -15,6 +15,7 @@ Redis 自动装配 Starter，基于 Spring Data Redis（Lettuce）+ Redisson 双
 | 延迟任务 | `DelayedTask<T>` | 基于 `RDelayedQueue` 的延迟触发 |
 | 延迟重试任务 | `DelayedRetryTask<T>` | 失败自动按策略重试 |
 | 两级缓存 | `TwoLevelCache` + `TwoLevelCacheManager` | Caffeine L1 + Redis L2 + Pub/Sub 跨实例失效广播 |
+| 两级缓存操作模板 | `TwoLevelCacheTemplate` | Redis 故障回源、Required/BestEffort 写入、事务提交后刷新/驱逐 |
 
 ## 模块结构
 
@@ -560,6 +561,30 @@ get(key, loader)
        └── 实例 C 收到 → L1.invalidate("user:1")
 ```
 
+### 8.7 操作模板 — `TwoLevelCacheTemplate`
+
+当缓存属于数据库事务的一部分，或 Redis 暂时不可用时，可注入操作模板：
+
+```java
+@Autowired
+private TwoLevelCacheTemplate cacheTemplate;
+
+// Redis 读取故障时回源；缓存回填故障不会重复执行 loader
+String value = cacheTemplate.get(
+        "featureFlags", "feature-flag:dark-mode",
+        () -> featureFlagService.load("dark-mode"),
+        30, TimeUnit.SECONDS);
+
+// 必须成功，否则向上抛出 Redis 异常
+cacheTemplate.setRequired("featureFlags", "feature-flag:dark-mode",
+        "enabled", 30, TimeUnit.SECONDS);
+
+// 非关键缓存操作失败只记录日志
+cacheTemplate.evictBestEffort("featureFlags", "feature-flag:dark-mode");
+```
+
+`replaceAfterCommitBestEffort` 和 `evictAfterCommitBestEffort` 会在当前事务提交后执行；没有活动事务时立即执行。模板 Bean 仅在 `TwoLevelCacheManager` 已创建时提供。
+
 > 本实例也会收到自己的失效消息（pub/sub 语义），导致 L1 被删 —— 下次 get 会从 L2 回填，**仅多一次 L1 miss**。
 
 ---
@@ -578,6 +603,7 @@ get(key, loader)
 | `DelayedRetryTask<T>` | 延迟重试 | `execute(T)` / `hasNext(DelayRetry)` / `nextTime(DelayRetry)` |
 | `TwoLevelCache` | 两级缓存 | `get` / `get(key, loader)` / `set` / `evict` / `clearLocal` |
 | `TwoLevelCacheManager` | 缓存实例管理 | `get(name)` / `getDefault()` / `names()` |
+| `TwoLevelCacheTemplate` | 容错与事务模板 | `get` / `setRequired` / `setBestEffort` / `evictRequired` / `replaceAfterCommitBestEffort` |
 | `Message<T>` | 队列消息模型 | `msgId` / `data` |
 | `DelayRetry<T>` | 重试策略模型 | `setMaxCount` / `setInterval` / `setUseSameInterval` |
 
@@ -609,6 +635,7 @@ get(key, loader)
   - `send` 是 fire-and-forget，异步失败会写 ERROR 日志。
 - **`TwoLevelCache`**：
   - 不配 `enabled: true` 则不创建任何 Bean，零侵入。
+  - `TwoLevelCacheTemplate` 仅在 `TwoLevelCacheManager` 存在时自动装配。
   - `set()` 会通过 Pub/Sub 广播失效，本实例也会收到自己的消息（pub/sub 语义天然如此），导致 L1 被删 —— 下次 get 从 L2 回填，**仅多一次 L1 miss**。
   - `get(key, loader)` 中 loader 返回 `null` 时缓存空值 60 秒防穿透；loader 抛异常**不缓存**，异常直接向上抛出。
   - L1 TTL 由每次 `set()` / `get(key, loader, ttl, unit)` 传入或使用实例默认值，Caffeine 的 `expireAfter` 按 key 动态决定过期时间。

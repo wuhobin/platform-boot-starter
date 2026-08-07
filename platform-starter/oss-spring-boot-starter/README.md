@@ -91,6 +91,33 @@ public class FileController {
 }
 ```
 
+### 4. 上传内容校验
+
+Starter 同时提供基于 Apache Tika 的服务端文件内容检测。校验器不会自动拦截所有上传请求，业务在执行上传前显式调用即可：
+
+```java
+@Autowired
+private FileUploadValidator fileUploadValidator;
+
+String contentType = fileUploadValidator.validate(file);
+MultipartFile trustedFile = new ValidatedMultipartFile(file, contentType);
+ossTemplate.upload(trustedFile);
+```
+
+默认限制为 50 MB、255 个字符，并允许 JPG/JPEG/PNG/GIF/WEBP/MP4/PDF/ZIP/TXT。Starter 同时携带 MP4/QuickTime 等 ISO Base Media 格式的 MIME 识别规则，避免仅凭扩展名放行伪造文件。`allowed-content-types` 是 MIME 类型数组，Starter 默认值会保留；下游只需要追加业务额外支持的类型：
+
+```yaml
+platform:
+  oss:
+    upload-validation:
+      max-size: 50MB
+      max-filename-length: 255
+      allowed-content-types:
+        - image/svg+xml
+```
+
+校验失败会抛出 `FileValidationException`，通过 `getReason()` 获取失败原因；starter 不绑定具体的 Web 业务异常体系。
+
 ---
 
 ## 支持的云平台

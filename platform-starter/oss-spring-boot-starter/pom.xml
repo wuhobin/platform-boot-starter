@@ -25,11 +25,24 @@
             <artifactId>x-file-storage-spring</artifactId>
         </dependency>
 
+        <!-- Apache Tika 内容类型检测 -->
+        <dependency>
+            <groupId>org.apache.tika</groupId>
+            <artifactId>tika-core</artifactId>
+        </dependency>
+
         <!-- Spring Web（提供 MultipartFile，scope=provided 避免强制下游引入） -->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-web</artifactId>
             <scope>provided</scope>
+        </dependency>
+
+        <!-- 生成 platform.oss.* 配置元数据 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
         </dependency>
 
         <dependency>

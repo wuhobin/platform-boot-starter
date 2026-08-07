@@ -1,1 +1,2 @@
 com.aurora.starter.oss.config.OssAutoConfig
+com.aurora.starter.oss.config.FileUploadValidationAutoConfiguration

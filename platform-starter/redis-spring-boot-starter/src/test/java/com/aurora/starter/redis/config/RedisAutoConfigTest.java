@@ -2,6 +2,8 @@ package com.aurora.starter.redis.config;
 
 import com.aurora.starter.redis.core.JsonRedisTemplate;
 import com.aurora.starter.redis.core.RedisCache;
+import com.aurora.starter.redis.core.TwoLevelCacheTemplate;
+import com.aurora.starter.redis.core.manager.TwoLevelCacheManager;
 import org.junit.jupiter.api.Test;
 import org.redisson.api.RedissonClient;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -78,6 +80,35 @@ class RedisAutoConfigTest {
 
             assertThat(restored).isEqualTo(value);
         });
+    }
+
+    @Test
+    void shouldCreateTwoLevelCacheTemplateWhenManagerIsAvailable() {
+        TwoLevelCacheManager manager = mock(TwoLevelCacheManager.class);
+
+        contextRunner
+                .withBean(TwoLevelCacheManager.class, () -> manager)
+                .run(context -> {
+                    assertThat(context).hasSingleBean(TwoLevelCacheTemplate.class);
+                    assertThat(context.getBean(TwoLevelCacheTemplate.class))
+                            .isNotNull();
+                });
+    }
+
+    @Test
+    void shouldCreateTwoLevelCacheTemplateWhenTwoLevelCacheIsEnabled() {
+        contextRunner
+                .withPropertyValues("platform.redis.two-level-cache.enabled=true")
+                .run(context -> {
+                    assertThat(context).hasSingleBean(TwoLevelCacheManager.class);
+                    assertThat(context).hasSingleBean(TwoLevelCacheTemplate.class);
+                });
+    }
+
+    @Test
+    void shouldBackOffTwoLevelCacheTemplateWhenManagerIsUnavailable() {
+        contextRunner.run(context -> assertThat(context)
+                .doesNotHaveBean(TwoLevelCacheTemplate.class));
     }
 
     private record DateTimeCacheValue(LocalDateTime loginTime) {

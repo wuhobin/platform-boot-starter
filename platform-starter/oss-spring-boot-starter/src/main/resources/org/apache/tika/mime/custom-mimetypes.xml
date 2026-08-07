@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mime-info>
+    <!-- Keep Tika's priority-60 rules for AVIF, HEIF, 3GP, and audio MP4 ahead of this fallback. -->
+    <mime-type type="video/mp4">
+        <magic priority="55">
+            <match value="ftyp" type="string" offset="4"/>
+        </magic>
+        <magic priority="70">
+            <match value="ftypM4V " type="string" offset="4"/>
+            <match value="ftypM4VH" type="string" offset="4"/>
+            <match value="ftypM4VP" type="string" offset="4"/>
+        </magic>
+    </mime-type>
+    <!-- Preserve genuine QuickTime files instead of treating their generic ftyp box as MP4. -->
+    <mime-type type="video/quicktime">
+        <magic priority="70">
+            <match value="ftypqt  " type="string" offset="4"/>
+        </magic>
+    </mime-type>
+</mime-info>

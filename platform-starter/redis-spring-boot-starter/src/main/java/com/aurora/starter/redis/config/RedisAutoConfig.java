@@ -8,6 +8,7 @@ import com.aurora.starter.redis.core.RedisMessageQueue;
 import com.aurora.starter.redis.core.RedisPubSub;
 import com.aurora.starter.redis.core.RedisRateLimiter;
 import com.aurora.starter.redis.core.TwoLevelCache;
+import com.aurora.starter.redis.core.TwoLevelCacheTemplate;
 import com.aurora.starter.redis.core.manager.TwoLevelCacheManager;
 import org.redisson.api.RBloomFilter;
 import org.redisson.api.RedissonClient;
@@ -15,6 +16,7 @@ import org.redisson.codec.JsonJacksonCodec;
 import org.redisson.spring.starter.RedissonAutoConfigurationCustomizer;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -166,5 +168,17 @@ public class RedisAutoConfig {
         }
         instances.put("default", defaultCache);
         return new TwoLevelCacheManager(defaultCache, instances);
+    }
+
+    /**
+     * 二级缓存操作模板。
+     * <p>
+     * 只有启用二级缓存并创建 {@link TwoLevelCacheManager} 后才提供该 Bean。
+     */
+    @Bean
+    @ConditionalOnBean(TwoLevelCacheManager.class)
+    @ConditionalOnMissingBean
+    public TwoLevelCacheTemplate twoLevelCacheTemplate(TwoLevelCacheManager cacheManager) {
+        return new TwoLevelCacheTemplate(cacheManager);
     }
 }
